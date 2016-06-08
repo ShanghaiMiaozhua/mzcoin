@@ -6,8 +6,8 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/wudaofan/mzcoinsrc/cipher"
-	"github.com/wudaofan/mzcoinsrc/cipher/secp256k1-go"
+	"github.com/wudaofan/mzcoin/src/cipher"
+	"github.com/wudaofan/mzcoin/src/cipher/secp256k1-go"
 )
 
 //Filename

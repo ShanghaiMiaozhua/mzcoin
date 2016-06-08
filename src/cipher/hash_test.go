@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/wudaofan/mzcoinsrc/cipher/ripemd160"
+	"github.com/wudaofan/mzcoin/src/cipher/ripemd160"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoin/src/cipher"
 )
 
 func TestAddress1(t *testing.T) {

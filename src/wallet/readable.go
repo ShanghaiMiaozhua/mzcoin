@@ -4,8 +4,8 @@ import (
 	//"fmt"
 	"log"
 
-	"github.com/wudaofan/mzcoinsrc/cipher"
-	"github.com/wudaofan/mzcoinsrc/util"
+	"github.com/wudaofan/mzcoin/src/cipher"
+	"github.com/wudaofan/mzcoin/src/util"
 )
 
 type ReadableWalletEntry struct {

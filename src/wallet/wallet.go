@@ -8,7 +8,7 @@ import (
 
 	"encoding/hex"
 
-	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoin/src/cipher"
 	//"math/rand"
 )
 

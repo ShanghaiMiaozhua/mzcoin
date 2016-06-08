@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/wudaofan/mzcoinsrc/cipher"
-	"github.com/wudaofan/mzcoinsrc/coin"
-	"github.com/wudaofan/mzcoinsrc/wallet"
+	"github.com/wudaofan/mzcoin/src/cipher"
+	"github.com/wudaofan/mzcoin/src/coin"
+	"github.com/wudaofan/mzcoin/src/wallet"
 	"github.com/stretchr/testify/assert"
 )
 

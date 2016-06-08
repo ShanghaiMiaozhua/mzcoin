@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	//"github.com/wudaofan/mzcoinsrc/daemon/gnet"
-	"github.com/wudaofan/mzcoinsrc/daemon/gnet"
+	//"github.com/wudaofan/mzcoin/src/daemon/gnet"
+	"github.com/wudaofan/mzcoin/src/daemon/gnet"
 	"github.com/stretchr/testify/assert"
 )
 

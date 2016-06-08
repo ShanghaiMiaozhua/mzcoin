@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/wudaofan/mzcoinsrc/cipher"
-	"github.com/wudaofan/mzcoinsrc/coin"
-	"github.com/wudaofan/mzcoinsrc/util"
-	"github.com/wudaofan/mzcoinsrc/wallet"
+	"github.com/wudaofan/mzcoin/src/cipher"
+	"github.com/wudaofan/mzcoin/src/coin"
+	"github.com/wudaofan/mzcoin/src/util"
+	"github.com/wudaofan/mzcoin/src/wallet"
 	"github.com/stretchr/testify/assert"
 )
 

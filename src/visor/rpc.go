@@ -1,8 +1,8 @@
 package visor
 
 import (
-	"github.com/wudaofan/mzcoinsrc/cipher"
-	//"github.com/wudaofan/mzcoinsrc/wallet"
+	"github.com/wudaofan/mzcoin/src/cipher"
+	//"github.com/wudaofan/mzcoin/src/wallet"
 )
 
 /*

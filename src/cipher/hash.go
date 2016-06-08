@@ -7,7 +7,7 @@ import (
 	"hash"
 	"log"
 
-	"github.com/wudaofan/mzcoinsrc/cipher/ripemd160"
+	"github.com/wudaofan/mzcoin/src/cipher/ripemd160"
 )
 
 var (

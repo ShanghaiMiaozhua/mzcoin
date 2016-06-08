@@ -10,8 +10,8 @@ import (
 
 	"strconv"
 
-	"github.com/wudaofan/mzcoinsrc/cipher"
-	"github.com/wudaofan/mzcoinsrc/coin"
+	"github.com/wudaofan/mzcoin/src/cipher"
+	"github.com/wudaofan/mzcoin/src/coin"
 )
 
 // Encapsulates useful information from the coin.Blockchain

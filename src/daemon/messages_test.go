@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/wudaofan/mzcoinsrc/aether/encoder"
-	//"github.com/wudaofan/mzcoinsrc/daemon/gnet"
-	"github.com/wudaofan/mzcoinsrc/daemon/gnet"
-	"github.com/wudaofan/mzcoinsrc/daemon/pex"
-	"github.com/wudaofan/mzcoinsrc/util"
+	"github.com/wudaofan/mzcoin/src/aether/encoder"
+	//"github.com/wudaofan/mzcoin/src/daemon/gnet"
+	"github.com/wudaofan/mzcoin/src/daemon/gnet"
+	"github.com/wudaofan/mzcoin/src/daemon/pex"
+	"github.com/wudaofan/mzcoin/src/util"
 	"github.com/stretchr/testify/assert"
 )
 

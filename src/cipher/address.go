@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log"
 
-	"github.com/wudaofan/mzcoinsrc/cipher/base58"
+	"github.com/wudaofan/mzcoin/src/cipher/base58"
 )
 
 /*

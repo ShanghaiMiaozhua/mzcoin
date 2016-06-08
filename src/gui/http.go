@@ -13,7 +13,7 @@ import (
 
 	"gopkg.in/op/go-logging.v1"
 
-	"github.com/wudaofan/mzcoinsrc/daemon"
+	"github.com/wudaofan/mzcoin/src/daemon"
 )
 
 var (

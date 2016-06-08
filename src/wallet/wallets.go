@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoin/src/cipher"
 )
 
 type Wallets []Wallet

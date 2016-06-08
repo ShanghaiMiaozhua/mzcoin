@@ -3,7 +3,7 @@ package daemon
 import (
 	"time"
 
-	"github.com/wudaofan/mzcoinsrc/daemon/pex"
+	"github.com/wudaofan/mzcoin/src/daemon/pex"
 )
 
 type PeersConfig struct {
@@ -60,9 +60,7 @@ func NewPeers(c PeersConfig) *Peers {
 //do "default_peers file"
 //read file, write, if does not exist
 var BootStrapPeers = []string{
-	"13.76.90.237:6000",
-	"40.74.142.139:6000",
-	"188.226.245.87:6000",
+	"0.0.0.0:6000",
 }
 
 // Configure the pex.PeerList and load local data

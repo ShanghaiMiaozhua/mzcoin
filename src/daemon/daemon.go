@@ -12,10 +12,10 @@ import (
 
 	"gopkg.in/op/go-logging.v1"
 
-	//"github.com/wudaofan/mzcoinsrc/daemon/gnet"
-	"github.com/wudaofan/mzcoinsrc/daemon/gnet"
-	"github.com/wudaofan/mzcoinsrc/daemon/pex"
-	"github.com/wudaofan/mzcoinsrc/util"
+	//"github.com/wudaofan/mzcoin/src/daemon/gnet"
+	"github.com/wudaofan/mzcoin/src/daemon/gnet"
+	"github.com/wudaofan/mzcoin/src/daemon/pex"
+	"github.com/wudaofan/mzcoin/src/util"
 )
 
 /*
@@ -166,7 +166,7 @@ type DaemonConfig struct {
 
 func NewDaemonConfig() DaemonConfig {
 	return DaemonConfig{
-		Version:                    2,
+		Version:                    9999,
 		Address:                    "",
 		Port:                       6677,
 		OutgoingRate:               time.Second * 5,

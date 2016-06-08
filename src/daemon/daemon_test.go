@@ -11,13 +11,13 @@ import (
 	"time"
 
 	"github.com/nictuku/dht"
-	//"github.com/wudaofan/mzcoinsrc/daemon/gnet"
-	"github.com/wudaofan/mzcoinsrc/daemon/gnet"
+	//"github.com/wudaofan/mzcoin/src/daemon/gnet"
+	"github.com/wudaofan/mzcoin/src/daemon/gnet"
 
-	"github.com/wudaofan/mzcoinsrc/daemon/pex"
-	//"github.com/wudaofan/mzcoinsrc/coin"
-	"github.com/wudaofan/mzcoinsrc/util"
-	//"github.com/wudaofan/mzcoinsrc/wallet"
+	"github.com/wudaofan/mzcoin/src/daemon/pex"
+	//"github.com/wudaofan/mzcoin/src/coin"
+	"github.com/wudaofan/mzcoin/src/util"
+	//"github.com/wudaofan/mzcoin/src/wallet"
 	"github.com/stretchr/testify/assert"
 )
 

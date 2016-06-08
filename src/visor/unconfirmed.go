@@ -6,9 +6,9 @@ import (
 
 	"time"
 
-	"github.com/wudaofan/mzcoinsrc/cipher"
-	"github.com/wudaofan/mzcoinsrc/coin"
-	"github.com/wudaofan/mzcoinsrc/util"
+	"github.com/wudaofan/mzcoin/src/cipher"
+	"github.com/wudaofan/mzcoin/src/coin"
+	"github.com/wudaofan/mzcoin/src/util"
 )
 
 var BurnFactor uint64 = 2 //half of coinhours must be burnt

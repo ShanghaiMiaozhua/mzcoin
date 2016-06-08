@@ -4,9 +4,9 @@ import (
 	"log"
 	"time"
 
-	//"github.com/wudaofan/mzcoinsrc/daemon/gnet"
-	"github.com/wudaofan/mzcoinsrc/daemon/gnet"
-	"github.com/wudaofan/mzcoinsrc/util"
+	//"github.com/wudaofan/mzcoin/src/daemon/gnet"
+	"github.com/wudaofan/mzcoin/src/daemon/gnet"
+	"github.com/wudaofan/mzcoin/src/util"
 )
 
 type PoolConfig struct {

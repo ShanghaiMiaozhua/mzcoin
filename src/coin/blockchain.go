@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/wudaofan/mzcoinsrc/aether/encoder"
-	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoin/src/aether/encoder"
+	"github.com/wudaofan/mzcoin/src/cipher"
 	"gopkg.in/op/go-logging.v1"
 
 	//"time"

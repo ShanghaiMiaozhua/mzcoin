@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoin/src/cipher"
 	"github.com/stretchr/testify/assert"
 )
 

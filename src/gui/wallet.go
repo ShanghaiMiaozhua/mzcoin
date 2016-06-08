@@ -9,11 +9,11 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/wudaofan/mzcoinsrc/cipher"
-	"github.com/wudaofan/mzcoinsrc/coin"
-	"github.com/wudaofan/mzcoinsrc/daemon"
-	"github.com/wudaofan/mzcoinsrc/visor"
-	"github.com/wudaofan/mzcoinsrc/wallet"
+	"github.com/wudaofan/mzcoin/src/cipher"
+	"github.com/wudaofan/mzcoin/src/coin"
+	"github.com/wudaofan/mzcoin/src/daemon"
+	"github.com/wudaofan/mzcoin/src/visor"
+	"github.com/wudaofan/mzcoin/src/wallet"
 )
 
 //var Wallets wallet.Wallets

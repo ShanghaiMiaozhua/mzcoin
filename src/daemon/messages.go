@@ -7,10 +7,10 @@ import (
 	"math/rand"
 	"net"
 
-	//"github.com/wudaofan/mzcoinsrc/daemon/gnet"
-	"github.com/wudaofan/mzcoinsrc/daemon/gnet"
-	"github.com/wudaofan/mzcoinsrc/daemon/pex"
-	"github.com/wudaofan/mzcoinsrc/util"
+	//"github.com/wudaofan/mzcoin/src/daemon/gnet"
+	"github.com/wudaofan/mzcoin/src/daemon/gnet"
+	"github.com/wudaofan/mzcoin/src/daemon/pex"
+	"github.com/wudaofan/mzcoin/src/util"
 )
 
 // Message represent a packet to be serialized over the network by

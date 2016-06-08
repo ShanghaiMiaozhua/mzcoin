@@ -3,7 +3,7 @@ package wallet
 import (
 	"log"
 
-	"github.com/wudaofan/mzcoinsrc/coin"
+	"github.com/wudaofan/mzcoin/src/coin"
 )
 
 /*

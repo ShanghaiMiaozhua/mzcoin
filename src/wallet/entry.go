@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 
-	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoin/src/cipher"
 )
 
 //should just be array
