@@ -1,11 +1,11 @@
-skycoin
+MZCoin
 =======
 
-Skycoin is a next-generation cryptocurrency.
+MZCoin is a next-generation cryptocurrency.
 
-Skycoin improves on Bitcoin in too many ways to be addressed here.
+MZCoin improves on Bitcoin in too many ways to be addressed here.
 
-Skycoin is small part of OP Redecentralize and OP Darknet Plan.
+MZCoin is small part of OP Redecentralize and OP Darknet Plan.
 
 Installation
 ------------
