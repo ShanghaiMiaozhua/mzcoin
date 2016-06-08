@@ -26,16 +26,16 @@ import (
 //"github.com/wudaofan/mzcoin/src/wallet"
 
 var (
-	logger     = logging.MustGetLogger("skycoin.main")
+	logger     = logging.MustGetLogger("mzcoin.main")
 	logFormat  = "[%{module}:%{level}] %{message}"
 	logModules = []string{
-		"skycoin.main",
-		"skycoin.daemon",
-		"skycoin.coin",
-		"skycoin.gui",
-		"skycoin.util",
-		"skycoin.visor",
-		"skycoin.wallet",
+		"mzcoin.main",
+		"mzcoin.daemon",
+		"mzcoin.coin",
+		"mzcoin.gui",
+		"mzcoin.util",
+		"mzcoin.visor",
+		"mzcoin.wallet",
 		"gnet",
 		"pex",
 	}
@@ -85,7 +85,7 @@ type Config struct {
 	// If true, print the configured client web interface address and exit
 	PrintWebInterfaceAddress bool
 
-	// Data directory holds app data -- defaults to ~/.skycoin
+	// Data directory holds app data -- defaults to ~/.mzcoin
 	DataDirectory string
 	// GUI directory contains assets for the html gui
 	GUIDirectory string
@@ -163,7 +163,7 @@ func (c *Config) register() {
 	flag.BoolVar(&c.PrintWebInterfaceAddress, "print-web-interface-address",
 		c.PrintWebInterfaceAddress, "print configured web interface address and exit")
 	flag.StringVar(&c.DataDirectory, "data-dir", c.DataDirectory,
-		"directory to store app data (defaults to ~/.skycoin)")
+		"directory to store app data (defaults to ~/.mzcoin)")
 	flag.StringVar(&c.ConnectTo, "connect-to", c.ConnectTo,
 		"connect to this ip only")
 	flag.BoolVar(&c.ProfileCPU, "profile-cpu", c.ProfileCPU,
@@ -196,12 +196,12 @@ func (c *Config) register() {
 		"genesis block timestamp")
 
 	flag.StringVar(&c.WalletDirectory, "wallet-dir", c.WalletDirectory,
-		"location of the wallet files. Defaults to ~/.skycoin/wallet/")
+		"location of the wallet files. Defaults to ~/.mzcoin/wallet/")
 
 	flag.StringVar(&c.BlockchainFile, "blockchain-file", c.BlockchainFile,
-		"location of the blockchain file. Default to ~/.skycoin/blockchain.bin")
+		"location of the blockchain file. Default to ~/.mzcoin/blockchain.bin")
 	flag.StringVar(&c.BlockSigsFile, "blocksigs-file", c.BlockSigsFile,
-		"location of the block signatures file. Default to ~/.skycoin/blockchain.sigs")
+		"location of the block signatures file. Default to ~/.mzcoin/blockchain.sigs")
 
 	flag.DurationVar(&c.OutgoingConnectionsRate, "connection-rate",
 		c.OutgoingConnectionsRate, "How often to make an outgoing connection")
@@ -359,7 +359,7 @@ var devConfig Config = Config{
 	WebInterfaceHTTPS:        false,
 	PrintWebInterfaceAddress: false,
 	LaunchBrowser:            true,
-	// Data directory holds app data -- defaults to ~/.skycoin
+	// Data directory holds app data -- defaults to ~/.mzcoin
 	DataDirectory: "",
 	// Web GUI static resources
 	GUIDirectory: "./src/gui/static/",
@@ -387,7 +387,7 @@ var devConfig Config = Config{
 	// Enable cpu profiling
 	ProfileCPU: false,
 	// Where the file is written to
-	ProfileCPUFile: "skycoin.prof",
+	ProfileCPUFile: "mzcoin.prof",
 	// HTTP profiling interface (see http://golang.org/pkg/net/http/pprof/)
 	HTTPProf: false,
 	// Will force it to connect to this ip:port, instead of waiting for it
@@ -523,16 +523,16 @@ func Run(c *Config) {
 
 func main() {
 	/*
-		skycoin.Run(&cli.DaemonArgs)
+		mzcoin.Run(&cli.DaemonArgs)
 	*/
 
 	/*
-	   skycoin.Run(&cli.ClientArgs)
+	   mzcoin.Run(&cli.ClientArgs)
 	   stop := make(chan int)
 	   <-stop
 	*/
 
-	//skycoin.Run(&cli.DevArgs)
+	//mzcoin.Run(&cli.DevArgs)
 	devConfig.Parse()
 	Run(&devConfig)
 }

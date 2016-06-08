@@ -59,15 +59,15 @@ build
 release
 .bin
 
-.skycoin
+.mzcoin
 
 *.prof
 *.out
 
 # Binaries
-/skycoind
-/skycoin
-/skycoindev
+/mzcoind
+/mzcoin
+/mzcoindev
 /blockchain
 /generate_cert
 
