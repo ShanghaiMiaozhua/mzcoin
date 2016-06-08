@@ -1,16 +1,12 @@
-skycoin
+Mzcoin
 =======
 
-Skycoin is a next-generation cryptocurrency.
-
-Skycoin improves on Bitcoin in too many ways to be addressed here.
-
-Skycoin is small part of OP Redecentralize and OP Darknet Plan.
+Mzcoin is children's education coin. Based upon mzcoin.\
 
 Installation
 ------------
 
-*For detailed installation instructions, see [Installing Skycoin](../../wiki/Installation)*
+*For detailed installation instructions, see [Installing mzcoin](../../wiki/Installation)*
 
 For linux:
 sudo apt-get install curl git mercurial make binutils gcc bzr bison libgmp3-dev screen -y
@@ -30,7 +26,7 @@ Goto http://127.0.0.1:6402
 
 OR
 
-go run ./cmd/skycoin/skycoin.go
+go run ./cmd/mzcoin/mzcoin.go
 ```
 
 Golang environment setup with gvm
@@ -58,16 +54,16 @@ gvm use go1.6 >/dev/null
 
 ---
 
-The skycoin repo must be in $GOPATH, under "/src/github.com/skycoin". Otherwise golang programs cannot import the libraries.
+The mzcoin repo must be in $GOPATH, under "/src/github.com/mzcoin". Otherwise golang programs cannot import the libraries.
 
 ```
-#pull skycoin repo into the gopath
-#note: puts the skycoin folder in $GOPATH/src/github.com/skycoin/skycoin
-go get github.com/skycoin/skycoin
+#pull mzcoin repo into the gopath
+#note: puts the mzcoin folder in $GOPATH/src/github.com/mzcoin/mzcoin
+go get github.com/mzcoin/mzcoin
 
 #create symlink of the repo
 cd $HOME
-ln -s $GOPATH/src/github.com/skycoin/skycoin skycoin
+ln -s $GOPATH/src/github.com/mzcoin/mzcoin mzcoin
 ```
 
 Dependencies
@@ -75,22 +71,22 @@ Dependencies
 
 ```
 go get github.com/robfig/glock
-glock sync github.com/skycoin/skycoin
-go get ./cmd/skycoin
+glock sync github.com/mzcoin/mzcoin
+go get ./cmd/mzcoin
 ```
 
 To update dependencies
 ```
-glock save github.com/skycoin/skycoin/cmd/skycoin
+glock save github.com/mzcoin/mzcoin/cmd/mzcoin
 ```
 
 Running Node
 ---
 
 ```
-cd skycoin
+cd mzcoin
 screen
-go run ./cmd/skycoin/skycoin.go 
+go run ./cmd/mzcoin/mzcoin.go 
 #then ctrl+A then D to exit screen
 #screen -x to reattach screen
 ```
@@ -101,18 +97,18 @@ Todo
 Use gvm package set, so repo does not need to be symlinked. Does this have a default option?
 
 ```
-gvm pkgset create skycoin
-gvm pkgset use skycoin
-git clone https://github.com/skycoin/skycoin
-cd skycoin
+gvm pkgset create mzcoin
+gvm pkgset use mzcoin
+git clone https://github.com/mzcoin/mzcoin
+cd mzcoin
 go install
 ```
 
 Running
 ---
 
-cd skycoin
-go run ./cmd/skycoin/skycoin.go
+cd mzcoin
+go run ./cmd/mzcoin/mzcoin.go
 
 Cross Compilation
 ---
@@ -131,7 +127,7 @@ cd compile
 Local Server API
 ----
 
-Run the skycoin client then
+Run the mzcoin client then
 ```
 http://127.0.0.1:6420/wallets
 http://127.0.0.1:6420/outputs
@@ -155,12 +151,12 @@ http://127.0.0.1:6420/blockchain to check blockchain head
 Public API
 ----
 
-This is a public server. You can use these urls on local host too, with the skycoin client running.
+This is a public server. You can use these urls on local host too, with the mzcoin client running.
 ```
-http://skycoin-chompyz.c9.io/outputs
-http://skycoin-chompyz.c9.io/blockchain/blocks?start=0&end=500
-http://skycoin-chompyz.c9.io/blockchain
-http://skycoin-chompyz.c9.io/connections
+http://mzcoin-chompyz.c9.io/outputs
+http://mzcoin-chompyz.c9.io/blockchain/blocks?start=0&end=500
+http://mzcoin-chompyz.c9.io/blockchain
+http://mzcoin-chompyz.c9.io/connections
 ```
 
 Modules

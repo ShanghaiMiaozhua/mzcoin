@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/skycoin/skycoin/src/cipher"
+	"github.com/wudaofan/mzcoinsrc/cipher"
 	"github.com/stretchr/testify/assert"
 )
 

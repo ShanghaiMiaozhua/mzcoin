@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 
-	"github.com/skycoin/skycoin/src/cipher"
+	"github.com/wudaofan/mzcoinsrc/cipher"
 )
 
 // Manages UxOuts

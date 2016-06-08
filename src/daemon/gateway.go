@@ -1,9 +1,9 @@
 package daemon
 
 import (
-	"github.com/skycoin/skycoin/src/cipher"
-	"github.com/skycoin/skycoin/src/visor"
-	//"github.com/skycoin/skycoin/src/wallet"
+	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoinsrc/visor"
+	//"github.com/wudaofan/mzcoinsrc/wallet"
 )
 
 // Exposes a read-only api for use by the gui rpc interface

@@ -8,7 +8,7 @@ import (
 
 	"gopkg.in/op/go-logging.v1"
 
-	"github.com/skycoin/skycoin/src/cipher/secp256k1-go"
+	"github.com/wudaofan/mzcoinsrc/cipher/secp256k1-go"
 )
 
 var (

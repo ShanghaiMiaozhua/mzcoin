@@ -6,9 +6,9 @@ import (
 
 	"time"
 
-	"github.com/skycoin/skycoin/src/cipher"
-	"github.com/skycoin/skycoin/src/coin"
-	"github.com/skycoin/skycoin/src/util"
+	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoinsrc/coin"
+	"github.com/wudaofan/mzcoinsrc/util"
 )
 
 var BurnFactor uint64 = 2 //half of coinhours must be burnt

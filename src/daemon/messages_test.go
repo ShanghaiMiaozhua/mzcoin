@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skycoin/skycoin/src/aether/encoder"
-	//"github.com/skycoin/skycoin/src/daemon/gnet"
-	"github.com/skycoin/skycoin/src/daemon/gnet"
-	"github.com/skycoin/skycoin/src/daemon/pex"
-	"github.com/skycoin/skycoin/src/util"
+	"github.com/wudaofan/mzcoinsrc/aether/encoder"
+	//"github.com/wudaofan/mzcoinsrc/daemon/gnet"
+	"github.com/wudaofan/mzcoinsrc/daemon/gnet"
+	"github.com/wudaofan/mzcoinsrc/daemon/pex"
+	"github.com/wudaofan/mzcoinsrc/util"
 	"github.com/stretchr/testify/assert"
 )
 

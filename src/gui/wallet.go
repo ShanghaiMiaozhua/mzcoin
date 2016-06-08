@@ -9,11 +9,11 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/skycoin/skycoin/src/cipher"
-	"github.com/skycoin/skycoin/src/coin"
-	"github.com/skycoin/skycoin/src/daemon"
-	"github.com/skycoin/skycoin/src/visor"
-	"github.com/skycoin/skycoin/src/wallet"
+	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoinsrc/coin"
+	"github.com/wudaofan/mzcoinsrc/daemon"
+	"github.com/wudaofan/mzcoinsrc/visor"
+	"github.com/wudaofan/mzcoinsrc/wallet"
 )
 
 //var Wallets wallet.Wallets

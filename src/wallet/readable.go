@@ -4,8 +4,8 @@ import (
 	//"fmt"
 	"log"
 
-	"github.com/skycoin/skycoin/src/cipher"
-	"github.com/skycoin/skycoin/src/util"
+	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoinsrc/util"
 )
 
 type ReadableWalletEntry struct {

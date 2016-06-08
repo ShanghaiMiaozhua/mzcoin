@@ -13,17 +13,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/skycoin/skycoin/src/cipher"
-	"github.com/skycoin/skycoin/src/coin"
-	"github.com/skycoin/skycoin/src/daemon"
-	"github.com/skycoin/skycoin/src/gui"
-	"github.com/skycoin/skycoin/src/util"
+	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoinsrc/coin"
+	"github.com/wudaofan/mzcoinsrc/daemon"
+	"github.com/wudaofan/mzcoinsrc/gui"
+	"github.com/wudaofan/mzcoinsrc/util"
 	"gopkg.in/op/go-logging.v1"
 )
 
-//"github.com/skycoin/skycoin/src/cli"
+//"github.com/wudaofan/mzcoinsrc/cli"
 
-//"github.com/skycoin/skycoin/src/wallet"
+//"github.com/wudaofan/mzcoinsrc/wallet"
 
 var (
 	logger     = logging.MustGetLogger("skycoin.main")

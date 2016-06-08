@@ -10,8 +10,8 @@ import (
 
 	"strconv"
 
-	"github.com/skycoin/skycoin/src/cipher"
-	"github.com/skycoin/skycoin/src/coin"
+	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoinsrc/coin"
 )
 
 // Encapsulates useful information from the coin.Blockchain

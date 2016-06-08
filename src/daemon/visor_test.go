@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skycoin/skycoin/src/daemon/gnet"
-	"github.com/skycoin/skycoin/src/aether/encoder"
-	"github.com/skycoin/skycoin/src/cipher"
-	"github.com/skycoin/skycoin/src/coin"
-	"github.com/skycoin/skycoin/src/util"
-	"github.com/skycoin/skycoin/src/visor"
-	"github.com/skycoin/skycoin/src/wallet"
+	"github.com/wudaofan/mzcoinsrc/daemon/gnet"
+	"github.com/wudaofan/mzcoinsrc/aether/encoder"
+	"github.com/wudaofan/mzcoinsrc/cipher"
+	"github.com/wudaofan/mzcoinsrc/coin"
+	"github.com/wudaofan/mzcoinsrc/util"
+	"github.com/wudaofan/mzcoinsrc/visor"
+	"github.com/wudaofan/mzcoinsrc/wallet"
 	"github.com/stretchr/testify/assert"
 )
 */
