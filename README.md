@@ -2,7 +2,7 @@
 Mzcoin
 =======
 
-Mzcoin is children's education coin. Based upon mzcoin.
+Mzcoin is children's education coin created by mzworld.
 
 Installation
 ------------
