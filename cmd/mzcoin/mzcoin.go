@@ -46,11 +46,8 @@ var (
 	BlockchainPubkeyStr = "02e2016590cf0036a47482773316ec1d521425fcd214cd02adca556751fafb291e"
 	BlockchainSeckeyStr = ""
 
-	DefaultServers = []string{
-		"13.76.90.237:6000",
-		"40.74.142.139:6000",
-		"188.226.245.87:6000",
-	}
+	//use port 6001
+	DefaultServers = []string{}
 )
 
 // Command line interface arguments
