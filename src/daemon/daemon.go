@@ -68,7 +68,7 @@ var (
 		//ConnectFailed:                       time.Minute * 60,
 	}
 
-	logger = logging.MustGetLogger("skycoin.daemon")
+	logger = logging.MustGetLogger("mzcoin.daemon")
 )
 
 // Subsystem configurations

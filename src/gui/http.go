@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	logger = logging.MustGetLogger("skycoin.gui")
+	logger = logging.MustGetLogger("mzcoin.gui")
 )
 
 const (

@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	logger = logging.MustGetLogger("skycoin.visor")
+	logger = logging.MustGetLogger("mzcoin.visor")
 )
 
 // Configuration parameters for the Visor
@@ -96,7 +96,7 @@ func NewVisorConfig() VisorConfig {
 		GenesisAddress:    cipher.Address{},
 		GenesisSignature:  cipher.Sig{},
 		GenesisTimestamp:  0,
-		GenesisCoinVolume: 100e12, //100e6 * 10e6
+		GenesisCoinVolume: 300e12, //100e6 * 10e6
 	}
 
 	return c
@@ -235,7 +235,7 @@ func (self *Visor) CreateGenesisBlock() SignedBlock {
 	err := self.blockSigs.Verify(self.Config.BlockchainPubkey,
 		self.Blockchain)
 	if err != nil {
-		log.Panicf("Cannot create genesis block, signature verification failed: %v", err)
+		log.Panicf("Cannot create genesis block, signature verification failed: '%v'", err)
 	}
 	return sb
 }

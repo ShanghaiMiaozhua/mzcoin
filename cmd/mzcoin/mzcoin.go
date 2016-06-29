@@ -41,9 +41,9 @@ var (
 	}
 
 	//clear these after loading [????]
-	GenesisSignatureStr = "eb10468d10054d15f2b6f8946cd46797779aa20a7617ceb4be884189f219bc9a164e56a5b9f7bec392a804ff3740210348d73db77a37adb542a8e08d429ac92700"
-	GenesisAddressStr   = "2jBbGxZRGoQG1mqhPBnXnLTxK6oxsTf8os6"
-	BlockchainPubkeyStr = "0328c576d3f420e7682058a981173a4b374c7cc5ff55bf394d3cf57059bbe6456a"
+	GenesisSignatureStr = "ab58cd355f2e5b8c18ecfedba67d9410385c27588f0dc25f6cf18cc4fa7164456673e9d471e041fc25a74c70b33263654632a5ec058f532eb821f403976379ac01"
+	GenesisAddressStr   = "ppu2zgS1H2aheeMNgVpUXjHeJJ7Uov3i4W"
+	BlockchainPubkeyStr = "02e2016590cf0036a47482773316ec1d521425fcd214cd02adca556751fafb291e"
 	BlockchainSeckeyStr = ""
 )
 
@@ -343,7 +343,7 @@ var devConfig Config = Config{
 	// public interface
 	Address: "",
 	//gnet uses this for TCP incoming and outgoing
-	Port: 6000,
+	Port: 6001,
 
 	MaxConnections: 16,
 	// How often to make outgoing connections, in seconds
@@ -352,7 +352,7 @@ var devConfig Config = Config{
 	//AddressVersion: "test",
 	// Remote web interface
 	WebInterface:             true,
-	WebInterfacePort:         6420,
+	WebInterfacePort:         6421,
 	WebInterfaceAddr:         "127.0.0.1",
 	WebInterfaceCert:         "",
 	WebInterfaceKey:          "",
@@ -360,7 +360,7 @@ var devConfig Config = Config{
 	PrintWebInterfaceAddress: false,
 	LaunchBrowser:            true,
 	// Data directory holds app data -- defaults to ~/.mzcoin
-	DataDirectory: "",
+	DataDirectory: ".mzcoin",
 	// Web GUI static resources
 	GUIDirectory: "./src/gui/static/",
 	// Logging
@@ -379,7 +379,7 @@ var devConfig Config = Config{
 	BlockchainSeckey: cipher.SecKey{},
 
 	GenesisAddress:   cipher.Address{},
-	GenesisTimestamp: 1426562704,
+	GenesisTimestamp: 0,
 	GenesisSignature: cipher.Sig{},
 
 	/* Developer options */

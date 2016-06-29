@@ -21,7 +21,6 @@
     "angular-cookies": "~1.2.28",
     "angular-resource": "~1.2.28",
     "angular-sanitize": "~1.2.28",
-    "angular-qrcode": "https://github.com/chenhouwu/angular-qrcode.git#6.0.0",
     "domready": "~1.0.7",
     "alertify.js": "~0.3.11",
     "lodash": "~2.4.1",
