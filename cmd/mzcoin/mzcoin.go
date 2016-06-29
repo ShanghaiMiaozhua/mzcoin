@@ -47,7 +47,9 @@ var (
 	BlockchainSeckeyStr = ""
 
 	//use port 6001
-	DefaultServers = []string{}
+	DefaultServers = []string{
+		"40.74.80.119:6001",
+	}
 )
 
 // Command line interface arguments
