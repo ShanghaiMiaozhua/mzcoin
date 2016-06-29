@@ -45,6 +45,12 @@ var (
 	GenesisAddressStr   = "ppu2zgS1H2aheeMNgVpUXjHeJJ7Uov3i4W"
 	BlockchainPubkeyStr = "02e2016590cf0036a47482773316ec1d521425fcd214cd02adca556751fafb291e"
 	BlockchainSeckeyStr = ""
+
+	DefaultServers = []string{
+		"13.76.90.237:6000",
+		"40.74.142.139:6000",
+		"188.226.245.87:6000",
+	}
 )
 
 // Command line interface arguments
@@ -407,6 +413,8 @@ func configureDaemon(c *Config) daemon.Config {
 	dc.Daemon.Address = c.Address
 	dc.Daemon.LocalhostOnly = c.LocalhostOnly
 	dc.Daemon.OutgoingMax = c.MaxConnections
+
+	daemon.BootStrapPeers = DefaultServers
 
 	if c.OutgoingConnectionsRate == 0 {
 		c.OutgoingConnectionsRate = time.Millisecond
