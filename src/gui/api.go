@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/wudaofan/mzcoin/src/cipher"
-	// "github.com/wudaofan/mzcoin/src/coin"
-	"github.com/wudaofan/mzcoin/src/daemon"
-	// "github.com/wudaofan/mzcoin/src/visor"
-	// "github.com/wudaofan/mzcoin/src/wallet"
+	"github.com/skycoin/skycoin/src/cipher"
+	// "github.com/skycoin/skycoin/src/coin"
+	"github.com/skycoin/skycoin/src/daemon"
+	// "github.com/skycoin/skycoin/src/visor"
+	// "github.com/skycoin/skycoin/src/wallet"
 )
 
 //@todo remove duplicate struct of src/wallet/deterministic.go Wallet struct

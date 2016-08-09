@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/wudaofan/mzcoin/src/util"
+	"github.com/skycoin/skycoin/src/util"
 )
 
 // Returns true if both exist and are files, else false.

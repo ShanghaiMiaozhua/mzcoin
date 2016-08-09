@@ -9,11 +9,11 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/wudaofan/mzcoin/src/cipher"
-	"github.com/wudaofan/mzcoin/src/coin"
-	"github.com/wudaofan/mzcoin/src/daemon"
-	"github.com/wudaofan/mzcoin/src/visor"
-	"github.com/wudaofan/mzcoin/src/wallet"
+	"github.com/skycoin/skycoin/src/cipher"
+	"github.com/skycoin/skycoin/src/coin"
+	"github.com/skycoin/skycoin/src/daemon"
+	"github.com/skycoin/skycoin/src/visor"
+	"github.com/skycoin/skycoin/src/wallet"
 )
 
 //var Wallets wallet.Wallets
@@ -124,7 +124,7 @@ func (self *WalletRPC) GetWalletBalance(v *visor.Visor,
 
 	wlt := self.Wallets.Get(walletID)
 	if wlt == nil {
-		log.Printf("GetWalletBalance: ID NOT FOUND: id= %s", walletID)
+		log.Printf("GetWalletBalance: ID NOT FOUND: id= '%s'", walletID)
 		return wallet.BalancePair{}, errors.New("Id not found")
 	}
 	auxs := v.Blockchain.Unspent.AllForAddresses(wlt.GetAddresses())

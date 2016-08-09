@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/wudaofan/mzcoin/src/daemon"
+	"github.com/skycoin/skycoin/src/daemon"
 )
 
 func blockchainHandler(gateway *daemon.Gateway) http.HandlerFunc {

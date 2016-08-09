@@ -18,8 +18,8 @@ System.register(['angular2/core'], function(exports_1, context_1) {
                 core_1 = core_1_1;
             }],
         execute: function() {
-            QRCodeComponent = (function () {
-                function QRCodeComponent(el) {
+            let QRCodeComponent = class QRCodeComponent {
+                constructor(el) {
                     this.el = el;
                     this.qrdata = '';
                     this.size = 256;
@@ -28,7 +28,7 @@ System.register(['angular2/core'], function(exports_1, context_1) {
                     this.colorlight = '#ffffff';
                     this.usesvg = false;
                 }
-                QRCodeComponent.prototype.ngOnInit = function () {
+                ngOnInit() {
                     try {
                         if (this.qrdata === '') {
                             throw new Error("Empty QR Code data");
@@ -46,42 +46,42 @@ System.register(['angular2/core'], function(exports_1, context_1) {
                     catch (e) {
                         console.error("Error generating QR Code: " + e.message);
                     }
-                };
-                __decorate([
-                    core_1.Input(), 
-                    __metadata('design:type', String)
-                ], QRCodeComponent.prototype, "qrdata", void 0);
-                __decorate([
-                    core_1.Input(), 
-                    __metadata('design:type', Number)
-                ], QRCodeComponent.prototype, "size", void 0);
-                __decorate([
-                    core_1.Input(), 
-                    __metadata('design:type', String)
-                ], QRCodeComponent.prototype, "level", void 0);
-                __decorate([
-                    core_1.Input(), 
-                    __metadata('design:type', String)
-                ], QRCodeComponent.prototype, "colordark", void 0);
-                __decorate([
-                    core_1.Input(), 
-                    __metadata('design:type', String)
-                ], QRCodeComponent.prototype, "colorlight", void 0);
-                __decorate([
-                    core_1.Input(), 
-                    __metadata('design:type', Boolean)
-                ], QRCodeComponent.prototype, "usesvg", void 0);
-                QRCodeComponent = __decorate([
-                    core_1.Component({
-                        selector: 'qrcode',
-                        template: ''
-                    }), 
-                    __metadata('design:paramtypes', [core_1.ElementRef])
-                ], QRCodeComponent);
-                return QRCodeComponent;
-            }());
+                }
+            };
+            __decorate([
+                core_1.Input(), 
+                __metadata('design:type', String)
+            ], QRCodeComponent.prototype, "qrdata", void 0);
+            __decorate([
+                core_1.Input(), 
+                __metadata('design:type', Number)
+            ], QRCodeComponent.prototype, "size", void 0);
+            __decorate([
+                core_1.Input(), 
+                __metadata('design:type', String)
+            ], QRCodeComponent.prototype, "level", void 0);
+            __decorate([
+                core_1.Input(), 
+                __metadata('design:type', String)
+            ], QRCodeComponent.prototype, "colordark", void 0);
+            __decorate([
+                core_1.Input(), 
+                __metadata('design:type', String)
+            ], QRCodeComponent.prototype, "colorlight", void 0);
+            __decorate([
+                core_1.Input(), 
+                __metadata('design:type', Boolean)
+            ], QRCodeComponent.prototype, "usesvg", void 0);
+            QRCodeComponent = __decorate([
+                core_1.Component({
+                    selector: 'qrcode',
+                    template: ''
+                }), 
+                __metadata('design:paramtypes', [core_1.ElementRef])
+            ], QRCodeComponent);
             exports_1("QRCodeComponent", QRCodeComponent);
         }
     }
 });
+
 //# sourceMappingURL=ng2-qrcode.js.map

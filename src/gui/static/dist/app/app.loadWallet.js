@@ -1,4 +1,4 @@
-System.register(['angular2/core', 'angular2/router', 'angular2/http', 'rxjs/add/operator/map', 'rxjs/add/operator/catch', './ng2-qrcode.ts'], function(exports_1, context_1) {
+System.register(['angular2/core', 'angular2/router', 'angular2/http', 'rxjs/add/operator/map', 'rxjs/add/operator/catch', './ng2-qrcode.js'], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -30,21 +30,20 @@ System.register(['angular2/core', 'angular2/router', 'angular2/http', 'rxjs/add/
                 ng2_qrcode_ts_1 = ng2_qrcode_ts_1_1;
             }],
         execute: function() {
-            loadWalletComponent = (function () {
+            let loadWalletComponent = class loadWalletComponent {
                 //Constructor method for load HTTP object
-                function loadWalletComponent(http) {
+                constructor(http) {
                     this.http = http;
                     this.displayModeEnum = DisplayModeEnum;
                 }
                 //Init function for load default value
-                loadWalletComponent.prototype.ngOnInit = function () {
-                    var _this = this;
+                ngOnInit() {
                     this.displayMode = DisplayModeEnum.first;
                     this.loadWallet();
                     this.loadProgress();
                     //Set interval function for load wallet every 15 seconds
-                    setInterval(function () {
-                        _this.loadWallet();
+                    setInterval(() => {
+                        this.loadWallet();
                         console.log("Refreshing balance");
                     }, 15000);
                     //Enable Send tab "textbox" and "Ready" button by default
@@ -58,9 +57,9 @@ System.register(['angular2/core', 'angular2/router', 'angular2/http', 'rxjs/add/
                         localStorage.setItem('historyAddresses', JSON.stringify([]));
                         this.addresses = JSON.parse(localStorage.getItem('historyAddresses'));
                     }
-                };
+                }
                 //Ready button function for disable "textbox" and enable "Send" button for ready to send coin
-                loadWalletComponent.prototype.ready = function (spendId, spendaddress, spendamount) {
+                ready(spendId, spendaddress, spendamount) {
                     if (!spendId) {
                         alert("Please select from id");
                         return false;
@@ -75,47 +74,52 @@ System.register(['angular2/core', 'angular2/router', 'angular2/http', 'rxjs/add/
                     }
                     this.readyDisable = true;
                     this.sendDisable = false;
-                };
+                }
                 //Load wallet function
-                loadWalletComponent.prototype.loadWallet = function () {
-                    var _this = this;
+                loadWallet() {
                     this.http.post('/wallets', '')
-                        .map(function (res) { return res.json(); })
-                        .subscribe(function (data) {
-                        _this.wallets = data;
+                        .map((res) => res.json())
+                        .subscribe(data => {
+                        this.wallets = data;
+                        console.log('walets data is : ' + this.wallets);
                         //Load Balance for each wallet
                         //Set http headers
                         var headers = new http_2.Headers();
                         headers.append('Content-Type', 'application/x-www-form-urlencoded');
                         var inc = 0;
+                        var myInc = 0;
                         for (var item in data) {
-                            var address = data[inc].meta.filename;
+                            var wallet_id = data[inc].meta.filename;
+                            //var wallet_id = item.meta.filename;
+                            console.log('wallet_id is : ' + wallet_id);
+                            console.log('inc is : ' + inc);
                             //Post method executed
-                            _this.http.post('/wallet/balance', JSON.stringify({ id: address }), { headers: headers })
-                                .map(function (res) { return res.json(); })
+                            //this.http.post('/wallet/balance', JSON.stringify({id: address}), {headers: headers})
+                            this.http.get('/wallet/balance?id=' + wallet_id, { headers: headers })
+                                .map((res) => res.json())
                                 .subscribe(
                             //Response from API
-                            function (response) {
-                                console.log('load done: ' + inc);
-                                _this.wallets[inc].balance = response.confirmed.coins / 1000000;
-                                inc++;
-                            }, function (err) { return console.log("Error on load balance: " + err); }, function () { return console.log('Balance load done'); });
+                            response => {
+                                console.log('load done: ' + myInc);
+                                this.wallets[myInc].balance = response.confirmed.coins / 1000000;
+                                myInc++;
+                            }, err => console.log("Error on load balance: " + err), () => console.log('Balance load done'));
+                            inc++;
                         }
                         //Load Balance for each wallet end
-                    }, function (err) { return console.log("Error on load wallet: " + err); }, function () { return console.log('Wallet load done'); });
-                };
+                    }, err => console.log("Error on load wallet: " + err), () => console.log('Wallet load done'));
+                }
                 //Load progress function for Skycoin
-                loadWalletComponent.prototype.loadProgress = function () {
-                    var _this = this;
+                loadProgress() {
                     //Post method executed
                     this.http.post('/blockchain/progress', '')
-                        .map(function (res) { return res.json(); })
+                        .map((res) => res.json())
                         .subscribe(
                     //Response from API
-                    function (response) { _this.progress = (parseInt(response.current, 10) + 1) / parseInt(response.highest, 10) * 100; }, function (err) { return console.log("Error on load progress: " + err); }, function () { return console.log('Progress load done:' + _this.progress); });
-                };
+                    response => { this.progress = (parseInt(response.current, 10) + 1) / parseInt(response.highest, 10) * 100; }, err => console.log("Error on load progress: " + err), () => console.log('Progress load done:' + this.progress));
+                }
                 //Switch tab function
-                loadWalletComponent.prototype.switchTab = function (mode, wallet) {
+                switchTab(mode, wallet) {
                     //"Textbox" and "Ready" button enable in Send tab while switching tabs
                     this.sendDisable = true;
                     this.readyDisable = false;
@@ -123,95 +127,91 @@ System.register(['angular2/core', 'angular2/router', 'angular2/http', 'rxjs/add/
                     if (wallet) {
                         this.spendid = wallet.meta.filename;
                     }
-                };
+                }
                 //Show QR code function for show QR popup
-                loadWalletComponent.prototype.showQR = function (wallet) {
+                showQR(wallet) {
                     this.QrAddress = wallet.entries[0].address;
                     this.QrIsVisible = true;
-                };
+                }
                 //Hide QR code function for hide QR popup
-                loadWalletComponent.prototype.hideQrPopup = function () {
+                hideQrPopup() {
                     this.QrIsVisible = false;
-                };
+                }
                 //Show wallet function for view New wallet popup
-                loadWalletComponent.prototype.showNewWalletDialog = function () {
+                showNewWalletDialog() {
                     this.NewWalletIsVisible = true;
-                };
+                }
                 //Hide wallet function for hide New wallet popup
-                loadWalletComponent.prototype.hideWalletPopup = function () {
+                hideWalletPopup() {
                     this.NewWalletIsVisible = false;
-                };
+                }
                 //Add new wallet function for generate new wallet in Skycoin
-                loadWalletComponent.prototype.createNewWallet = function () {
-                    var _this = this;
+                createNewWallet() {
                     //Set http headers
                     var headers = new http_2.Headers();
                     headers.append('Content-Type', 'application/x-www-form-urlencoded');
                     //Post method executed
                     this.http.post('/wallet/create', JSON.stringify({ name: '' }), { headers: headers })
-                        .map(function (res) { return res.json(); })
-                        .subscribe(function (response) {
+                        .map((res) => res.json())
+                        .subscribe(response => {
                         //Hide new wallet popup
-                        _this.NewWalletIsVisible = false;
+                        this.NewWalletIsVisible = false;
                         alert("New wallet created successfully");
                         //Load wallet for refresh list
-                        _this.loadWallet();
-                    }, function (err) { return console.log("Error on create new wallet: " + err); }, function () { return console.log('New wallet create done'); });
-                };
+                        this.loadWallet();
+                    }, err => console.log("Error on create new wallet: " + err), () => console.log('New wallet create done'));
+                }
                 //Edit existing wallet function
-                loadWalletComponent.prototype.editWallet = function (wallet) {
+                editWallet(wallet) {
                     this.EditWalletIsVisible = true;
                     this.walletId = wallet.meta.filename;
-                };
+                }
                 //Hide edit wallet function
-                loadWalletComponent.prototype.hideEditWalletPopup = function () {
+                hideEditWalletPopup() {
                     this.EditWalletIsVisible = false;
-                };
+                }
                 //Update wallet function for update wallet label
-                loadWalletComponent.prototype.updateWallet = function (walletid, walletName) {
-                    var _this = this;
+                updateWallet(walletid, walletName) {
                     //Set http headers
                     var headers = new http_2.Headers();
                     headers.append('Content-Type', 'application/x-www-form-urlencoded');
                     var stringConvert = 'name=' + walletName + '&id=' + walletid;
                     //Post method executed
                     this.http.post('/wallet/update', stringConvert, { headers: headers })
-                        .map(function (res) { return res.json(); })
-                        .subscribe(function (response) {
+                        .map((res) => res.json())
+                        .subscribe(response => {
                         //Hide new wallet popup
-                        _this.EditWalletIsVisible = false;
+                        this.EditWalletIsVisible = false;
                         alert("Wallet updated successfully");
                         //Load wallet for refresh list
-                        _this.loadWallet();
-                    }, function (err) { return console.log("Error on update wallet: " + JSON.stringify(err)); }, function () { return console.log('Update wallet done'); });
-                };
+                        this.loadWallet();
+                    }, err => console.log("Error on update wallet: " + JSON.stringify(err)), () => console.log('Update wallet done'));
+                }
                 //Load wallet seed function
-                loadWalletComponent.prototype.openLoadWallet = function (walletName, seed) {
+                openLoadWallet(walletName, seed) {
                     this.loadSeedIsVisible = true;
-                };
+                }
                 //Hide load wallet seed function
-                loadWalletComponent.prototype.hideLoadSeedWalletPopup = function () {
+                hideLoadSeedWalletPopup() {
                     this.loadSeedIsVisible = false;
-                };
+                }
                 //Load wallet seed function for create new wallet with name and seed
-                loadWalletComponent.prototype.createWalletSeed = function (walletName, seed) {
-                    var _this = this;
+                createWalletSeed(walletName, seed) {
                     //Set http headers
                     var headers = new http_2.Headers();
                     headers.append('Content-Type', 'application/x-www-form-urlencoded');
                     var stringConvert = 'name=' + walletName + '&seed=' + seed;
                     //Post method executed
                     this.http.post('/wallet/create', stringConvert, { headers: headers })
-                        .map(function (res) { return res.json(); })
-                        .subscribe(function (response) {
+                        .map((res) => res.json())
+                        .subscribe(response => {
                         //Hide load wallet seed popup
-                        _this.loadSeedIsVisible = false;
+                        this.loadSeedIsVisible = false;
                         //Load wallet for refresh list
-                        _this.loadWallet();
-                    }, function (err) { return console.log("Error on create load wallet seed: " + JSON.stringify(err)); }, function () { return console.log('Load wallet seed done'); });
-                };
-                loadWalletComponent.prototype.spend = function (spendid, spendaddress, spendamount) {
-                    var _this = this;
+                        this.loadWallet();
+                    }, err => console.log("Error on create load wallet seed: " + JSON.stringify(err)), () => console.log('Load wallet seed done'));
+                }
+                spend(spendid, spendaddress, spendamount) {
                     //Set local storage for history
                     if (localStorage.getItem('historyTable') != null) {
                         this.historyTable = JSON.parse(localStorage.getItem('historyTable'));
@@ -240,29 +240,28 @@ System.register(['angular2/core', 'angular2/router', 'angular2/http', 'rxjs/add/
                     var stringConvert = 'id=' + spendid + '&coins=' + spendamount * 1000000 + "&fee=1&hours=1&dst=" + spendaddress;
                     //Post method executed
                     this.http.post('/wallet/spend', stringConvert, { headers: headers })
-                        .map(function (res) { return res.json(); })
-                        .subscribe(function (response) {
-                        _this.pendingTable.push({ complete: 'Completed', address: spendaddress, amount: spendamount });
+                        .map((res) => res.json())
+                        .subscribe(response => {
+                        this.pendingTable.push({ complete: 'Completed', address: spendaddress, amount: spendamount });
                         //Load wallet for refresh list
-                        _this.loadWallet();
-                    }, function (err) {
+                        this.loadWallet();
+                    }, err => {
                         alert(err._body);
-                        _this.readyDisable = false;
-                        _this.sendDisable = true;
-                        _this.pendingTable.push({ complete: 'Pending', address: spendaddress, amount: spendamount });
-                    }, function () { return console.log('Spend successfully'); });
-                };
-                loadWalletComponent = __decorate([
-                    core_1.Component({
-                        selector: 'load-wallet',
-                        directives: [router_1.ROUTER_DIRECTIVES, ng2_qrcode_ts_1.QRCodeComponent],
-                        providers: [],
-                        templateUrl: 'app/templates/wallet.html'
-                    }), 
-                    __metadata('design:paramtypes', [http_1.Http])
-                ], loadWalletComponent);
-                return loadWalletComponent;
-            }());
+                        this.readyDisable = false;
+                        this.sendDisable = true;
+                        this.pendingTable.push({ complete: 'Pending', address: spendaddress, amount: spendamount });
+                    }, () => console.log('Spend successfully'));
+                }
+            };
+            loadWalletComponent = __decorate([
+                core_1.Component({
+                    selector: 'load-wallet',
+                    directives: [router_1.ROUTER_DIRECTIVES, ng2_qrcode_ts_1.QRCodeComponent],
+                    providers: [],
+                    templateUrl: 'app/templates/wallet.html'
+                }), 
+                __metadata('design:paramtypes', [http_1.Http])
+            ], loadWalletComponent);
             exports_1("loadWalletComponent", loadWalletComponent);
             //Set default enum value for tabs
             (function (DisplayModeEnum) {
@@ -273,4 +272,5 @@ System.register(['angular2/core', 'angular2/router', 'angular2/http', 'rxjs/add/
         }
     }
 });
+
 //# sourceMappingURL=app.loadWallet.js.map
