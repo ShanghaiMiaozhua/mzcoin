@@ -46,6 +46,9 @@ var (
 	BlockchainPubkeyStr = "02e2016590cf0036a47482773316ec1d521425fcd214cd02adca556751fafb291e"
 	BlockchainSeckeyStr = ""
 
+    GenesisTimestamp  uint64 = 0
+	GenesisCoinVolume uint64 = 300e12
+
 	//use port 6001
 	DefaultServers = []string{
 		"40.74.80.119:6001",
@@ -384,7 +387,7 @@ var devConfig Config = Config{
 	BlockchainSeckey: cipher.SecKey{},
 
 	GenesisAddress:   cipher.Address{},
-	GenesisTimestamp: 0,
+	GenesisTimestamp: GenesisTimestamp,
 	GenesisSignature: cipher.Sig{},
 
 	/* Developer options */
@@ -402,6 +405,7 @@ var devConfig Config = Config{
 
 func configureDaemon(c *Config) daemon.Config {
 	//cipher.SetAddressVersion(c.AddressVersion)
+	
 	dc := daemon.NewConfig()
 	dc.Peers.DataDirectory = c.DataDirectory
 	dc.Peers.Disabled = c.DisablePEX
@@ -413,7 +417,8 @@ func configureDaemon(c *Config) daemon.Config {
 	dc.Daemon.LocalhostOnly = c.LocalhostOnly
 	dc.Daemon.OutgoingMax = c.MaxConnections
 
-	daemon.BootStrapPeers = DefaultServers
+	//daemon.BootStrapPeers = DefaultServers
+	daemon.DefaultConnections = DefaultConnections
 
 	if c.OutgoingConnectionsRate == 0 {
 		c.OutgoingConnectionsRate = time.Millisecond
@@ -431,17 +436,21 @@ func configureDaemon(c *Config) daemon.Config {
 	dc.Visor.Config.GenesisAddress = c.GenesisAddress
 	dc.Visor.Config.GenesisSignature = c.GenesisSignature
 	dc.Visor.Config.GenesisTimestamp = c.GenesisTimestamp
-
+    dc.Visor.Config.GenesisCoinVolume = GenesisCoinVolume
 	return dc
 }
 
 func Run(c *Config) {
+
+	c.GUIDirectory = util.ResolveResourceDirectory(c.GUIDirectory)
+
 	scheme := "http"
 	if c.WebInterfaceHTTPS {
 		scheme = "https"
 	}
 	host := fmt.Sprintf("%s:%d", c.WebInterfaceAddr, c.WebInterfacePort)
 	fullAddress := fmt.Sprintf("%s://%s", scheme, host)
+	logger.Critical("Full address: %s", fullAddress)
 
 	if c.PrintWebInterfaceAddress {
 		fmt.Println(fullAddress)
