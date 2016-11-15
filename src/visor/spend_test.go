@@ -5,22 +5,12 @@ import (
 	"log"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/wudaofan/mzcoin/src/cipher"
 	"github.com/wudaofan/mzcoin/src/coin"
 	"github.com/wudaofan/mzcoin/src/wallet"
 	"github.com/stretchr/testify/assert"
 )
-
-func tNow() uint64 {
-	return uint64(time.Now().UTC().Unix())
-}
-
-func assertError(t *testing.T, err error, msg string) {
-	assert.NotNil(t, err)
-	assert.Equal(t, err.Error(), msg)
-}
 
 func makeAddress() cipher.Address {
 	p, _ := cipher.GenerateKeyPair()

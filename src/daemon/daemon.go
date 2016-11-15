@@ -171,7 +171,7 @@ func NewDaemonConfig() DaemonConfig {
 		Port:                       6677,
 		OutgoingRate:               time.Second * 5,
 		PrivateRate:                time.Second * 5,
-		OutgoingMax:                16,
+		OutgoingMax:                32,
 		PendingMax:                 16,
 		IntroductionWait:           time.Second * 30,
 		CullInvalidRate:            time.Second * 3,
@@ -194,6 +194,8 @@ type Daemon struct {
 	Peers    *Peers
 	Gateway  *Gateway
 	Visor    *Visor
+
+	DefaultConnections []string
 
 	// Separate index of outgoing connections. The pool aggregates all
 	// connections.
@@ -231,6 +233,8 @@ func NewDaemon(config Config) *Daemon {
 		Pool:     NewPool(config.Pool),
 		Peers:    NewPeers(config.Peers),
 		Visor:    NewVisor(config.Visor),
+
+		DefaultConnections: DefaultConnections, //passed in from top level
 
 		ExpectingIntroductions: make(map[string]time.Time),
 		ConnectionMirrors:      make(map[string]uint32),
@@ -295,7 +299,7 @@ func (self *Daemon) Start(quit chan int) {
 
 	// TODO -- run blockchain stuff in its own goroutine
 	blockInterval := time.Duration(self.Visor.Config.Config.BlockCreationInterval)
-	blockchainBackupTicker := time.Tick(self.Visor.Config.BlockchainBackupRate)
+	// blockchainBackupTicker := time.Tick(self.Visor.Config.BlockchainBackupRate)
 	blockCreationTicker := time.NewTicker(time.Second * blockInterval)
 	if !self.Visor.Config.Config.IsMaster {
 		blockCreationTicker.Stop()
@@ -397,12 +401,12 @@ main:
 			}
 			self.processMessageEvent(m)
 		// Process any pending RPC requests
-		case fn := <-self.Gateway.Requests:
-			self.Gateway.Responses <- fn()
+		case req := <-self.Gateway.Requests:
+			req.Response <- req.Handle()
 
 		//save blockchain periodically
-		case <-blockchainBackupTicker:
-			self.Visor.SaveBlockchain()
+		// case <-blockchainBackupTicker:
+		// self.Visor.SaveBlockchain()
 
 		// TODO -- run these in the Visor
 		// Create blocks, if master chain

@@ -1,19 +1,22 @@
 package gui
 
 import (
+	//"crypto/tls"
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
-	"os"
+	//"os"
 	"path/filepath"
-	"strings"
+	//"strings"
 
-	"gopkg.in/op/go-logging.v1"
-
+	logging "github.com/op/go-logging"
 	"github.com/skycoin/skycoin/src/daemon"
+	"github.com/skycoin/skycoin/src/util"
+
+	wh "github.com/skycoin/skycoin/src/util/http" //http,json helpers
 )
 
 var (
@@ -22,6 +25,7 @@ var (
 
 const (
 	resourceDir = "dist/"
+	devDir      = "dev/"
 	indexPage   = "index.html"
 )
 
@@ -32,7 +36,7 @@ func LaunchWebInterface(host, staticDir string, daemon *daemon.Daemon) error {
 	logger.Warning("HTTPS not in use!")
 	logger.Info("Web resources directory: %s", staticDir)
 
-	appLoc, err := determineResourcePath(staticDir)
+	appLoc, err := util.DetermineResourcePath(staticDir, devDir, resourceDir)
 	if err != nil {
 		return err
 	}
@@ -55,7 +59,7 @@ func LaunchWebInterfaceHTTPS(host, staticDir string, daemon *daemon.Daemon, cert
 	logger.Info("Using %s for the key", keyFile)
 	logger.Info("Web resources directory: %s", staticDir)
 
-	appLoc, err := determineResourcePath(staticDir)
+	appLoc, err := util.DetermineResourcePath(staticDir, devDir, resourceDir)
 	if err != nil {
 		return err
 	}
@@ -90,21 +94,6 @@ func serve(listener net.Listener, mux *http.ServeMux) {
 	<-ready
 }
 
-func determineResourcePath(staticDir string) (string, error) {
-	appLoc := filepath.Join(staticDir, resourceDir)
-	if strings.HasPrefix(appLoc, "/") {
-		return appLoc, nil
-	}
-
-	// Prepend the binary's directory path if appLoc is relative
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(dir, appLoc), nil
-}
-
 // Creates an http.ServeMux with handlers registered
 func NewGUIMux(appLoc string, daemon *daemon.Daemon) *http.ServeMux {
 	mux := http.NewServeMux()
@@ -127,7 +116,10 @@ func NewGUIMux(appLoc string, daemon *daemon.Daemon) *http.ServeMux {
 	RegisterNetworkHandlers(mux, daemon.Gateway)
 	// Network API handler
 	RegisterApiHandlers(mux, daemon.Gateway)
-
+	// Transaction handler
+	RegisterTxHandlers(mux, daemon.Gateway)
+	// UxOUt api handler
+	RegisterUxOutHandlers(mux, daemon.Gateway)
 	return mux
 }
 
@@ -140,7 +132,7 @@ func newIndexHandler(appLoc string) http.HandlerFunc {
 		if r.URL.Path == "/" {
 			http.ServeFile(w, r, page)
 		} else {
-			Error404(w)
+			wh.Error404(w)
 		}
 	}
 }

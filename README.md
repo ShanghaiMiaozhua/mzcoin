@@ -23,24 +23,21 @@ brew install mercurial bzr
 
 ```
 ./run.sh
-Goto http://127.0.0.1:6402
-
-OR
-
-go run ./cmd/mzcoin/mzcoin.go
 ```
+
+Then open http://127.0.0.1:6402 in a browser.
 
 Golang environment setup with gvm
 ---
 
-The chinese firewall may block golang installation with gvm
+In China, use --source=https://github.com/golang/go to bypass firewall when fetching golang source
 
 ```
 sudo apt-get install bison curl git mercurial make binutils bison gcc build-essential
 bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
 source $HOME/.gvm/scripts/gvm
 
-gvm install go1.4
+gvm install go1.4 --source=https://github.com/golang/go
 gvm use go1.4
 gvm install go1.6
 gvm use go1.6 --default
@@ -81,7 +78,7 @@ To update dependencies
 glock save github.com/mzcoin/mzcoin/cmd/mzcoin
 ```
 
-Running Node
+Running A Skycoin Node
 ---
 
 ```
@@ -105,12 +102,6 @@ cd mzcoin
 go install
 ```
 
-Running
----
-
-cd mzcoin
-go run ./cmd/mzcoin/mzcoin.go
-
 Cross Compilation
 ---
 
@@ -121,8 +112,8 @@ go get github.com/mitchellh/gox
 
 Compile:
 ```
-cd compile
-./build-dist-all.sh
+gox --help
+gox [options] cmd/skycoin/
 ```
 
 Local Server API
@@ -138,13 +129,18 @@ http://127.0.0.1:6420/connections
 ```
 
 ```
-http://127.0.0.1:6420/wallets to get your wallet seed. Write this down
+http://127.0.0.1:6420/wallets
+- to get your wallet seed. Write this down
+
+http://127.0.0.1:6420/wallet/balance?id=2016_02_17_9671.wlt
+- to get wallet balance (use wallet filename as id)
+- TODO: allow addresses for balance check
 
 http://127.0.0.1:6420/outputs to see outputs (address balances)
 
 http://127.0.0.1:6420/blockchain/blocks?start=0&end=5000 to see all blocks and transactions.
 
-http://127.0.0.1:6420/connections to check network connections
+http://127.0.0.1:6420/network/connections to check network connections
 
 http://127.0.0.1:6420/blockchain to check blockchain head
 ```
@@ -171,3 +167,25 @@ Modules
 /src/gui - the web wallet and json client interface
 /src/wallet - the private key storage library
 ```
+
+Meshnet
+------
+
+```
+go run ./cmd/mesh/*.go -config=cmd/mesh/sample/config_a.json
+
+go run ./cmd/mesh/*.go -config=cmd/mesh/sample/config_b.json
+```
+
+Meshnet reminders
+- one way latency
+- two way latency (append), latency between packet and ack
+- service handler (ability to append services to meshnet)
+- uploading bandwidth, latency measurements over time
+- end-to-end route instrumentation
+
+Rebuilding Wallet HTML
+-----
+
+npm install
+gulp build

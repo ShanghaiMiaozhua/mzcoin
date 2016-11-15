@@ -13,12 +13,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/wudaofan/mzcoin/src/cipher"
-	"github.com/wudaofan/mzcoin/src/coin"
-	"github.com/wudaofan/mzcoin/src/daemon"
-	"github.com/wudaofan/mzcoin/src/gui"
-	"github.com/wudaofan/mzcoin/src/util"
-	"gopkg.in/op/go-logging.v1"
+	logging "github.com/op/go-logging"
+	"github.com/skycoin/skycoin/src/api/webrpc"
+	"github.com/skycoin/skycoin/src/cipher"
+	"github.com/skycoin/skycoin/src/coin"
+	"github.com/skycoin/skycoin/src/daemon"
+	"github.com/skycoin/skycoin/src/gui"
+	"github.com/skycoin/skycoin/src/util"
+	"github.com/skycoin/skycoin/src/visor/blockdb"
 )
 
 //"github.com/wudaofan/mzcoin/src/cli"
@@ -46,12 +48,17 @@ var (
 	BlockchainPubkeyStr = "02e2016590cf0036a47482773316ec1d521425fcd214cd02adca556751fafb291e"
 	BlockchainSeckeyStr = ""
 
-    GenesisTimestamp  uint64 = 0
+	GenesisTimestamp  uint64 = 0
 	GenesisCoinVolume uint64 = 300e12
 
 	//use port 6001
-	DefaultServers = []string{
-		"40.74.80.119:6001",
+	// DefaultServers = []string{
+	// 	"40.74.80.119:6001",
+	DefaultConnections = []string{
+		"13.76.90.237:6000",
+		"40.74.142.139:6000",
+		"188.226.245.87:6000",
+		"40.74.80.119:6000",
 	}
 )
 
@@ -100,8 +107,7 @@ type Config struct {
 	// Logging
 	LogLevel logging.Level
 	ColorLog bool
-	// This is the value registered with flag, it is converted to LogLevel
-	// after parsing
+	// This is the value registered with flag, it is converted to LogLevel after parsing
 	logLevel string
 
 	// Wallets
@@ -132,12 +138,6 @@ type Config struct {
 	// Will force it to connect to this ip:port, instead of waiting for it
 	// to show up as a peer
 	ConnectTo string
-}
-
-func (c *Config) Parse() {
-	c.register()
-	flag.Parse()
-	c.postProcess()
 }
 
 func (c *Config) register() {
@@ -182,8 +182,8 @@ func (c *Config) register() {
 		"Run the http profiling interface")
 	flag.StringVar(&c.logLevel, "log-level", c.logLevel,
 		"Choices are: debug, info, notice, warning, error, critical")
-	//flag.BoolVar(&c.ColorLog, "color-log", c.ColorLog,
-	//	"Add terminal colors to log output")
+	flag.BoolVar(&c.ColorLog, "color-log", c.ColorLog,
+		"Add terminal colors to log output")
 	flag.StringVar(&c.GUIDirectory, "gui-dir", c.GUIDirectory,
 		"static content directory for the html gui")
 
@@ -217,6 +217,12 @@ func (c *Config) register() {
 		"Run on localhost and only connect to localhost peers")
 	//flag.StringVar(&c.AddressVersion, "address-version", c.AddressVersion,
 	//	"Wallet address version. Options are 'test' and 'main'")
+}
+
+func (c *Config) Parse() {
+	c.register()
+	flag.Parse()
+	c.postProcess()
 }
 
 func (c *Config) postProcess() {
@@ -263,6 +269,7 @@ func (c *Config) postProcess() {
 	ll, err := logging.LogLevel(c.logLevel)
 	panicIfError(err, "Invalid -log-level %s", c.logLevel)
 	c.LogLevel = ll
+
 }
 
 func panicIfError(err error, msg string, args ...interface{}) {
@@ -405,7 +412,7 @@ var devConfig Config = Config{
 
 func configureDaemon(c *Config) daemon.Config {
 	//cipher.SetAddressVersion(c.AddressVersion)
-	
+
 	dc := daemon.NewConfig()
 	dc.Peers.DataDirectory = c.DataDirectory
 	dc.Peers.Disabled = c.DisablePEX
@@ -417,7 +424,6 @@ func configureDaemon(c *Config) daemon.Config {
 	dc.Daemon.LocalhostOnly = c.LocalhostOnly
 	dc.Daemon.OutgoingMax = c.MaxConnections
 
-	//daemon.BootStrapPeers = DefaultServers
 	daemon.DefaultConnections = DefaultConnections
 
 	if c.OutgoingConnectionsRate == 0 {
@@ -436,7 +442,7 @@ func configureDaemon(c *Config) daemon.Config {
 	dc.Visor.Config.GenesisAddress = c.GenesisAddress
 	dc.Visor.Config.GenesisSignature = c.GenesisSignature
 	dc.Visor.Config.GenesisTimestamp = c.GenesisTimestamp
-    dc.Visor.Config.GenesisCoinVolume = GenesisCoinVolume
+	dc.Visor.Config.GenesisCoinVolume = GenesisCoinVolume
 	return dc
 }
 
@@ -460,6 +466,14 @@ func Run(c *Config) {
 	initProfiling(c.HTTPProf, c.ProfileCPU, c.ProfileCPUFile)
 	initLogging(c.LogLevel, c.ColorLog)
 
+	// start the block db.
+	blockdb.Start()
+	defer blockdb.Stop()
+
+	// start the transaction db.
+	// transactiondb.Start()
+	// defer transactiondb.Stop()
+
 	// If the user Ctrl-C's, shutdown properly
 	quit := make(chan int)
 	go catchInterrupt(quit)
@@ -474,6 +488,10 @@ func Run(c *Config) {
 	stopDaemon := make(chan int)
 	go d.Start(stopDaemon)
 
+	// start the webrpc
+	closingC := make(chan struct{})
+	go webrpc.Start("0.0.0.0:6422", 1000, 1000, d.Gateway, closingC)
+
 	// Debug only - forces connection on start.  Violates thread safety.
 	if c.ConnectTo != "" {
 		_, err := d.Pool.Pool.Connect(c.ConnectTo)
@@ -486,7 +504,7 @@ func Run(c *Config) {
 		var err error
 		if c.WebInterfaceHTTPS {
 			// Verify cert/key parameters, and if neither exist, create them
-			errs := gui.CreateCertIfNotExists(host, c.WebInterfaceCert, c.WebInterfaceKey)
+			errs := util.CreateCertIfNotExists(host, c.WebInterfaceCert, c.WebInterfaceKey, "Skycoind")
 			if len(errs) != 0 {
 				for _, err := range errs {
 					logger.Error(err.Error())
@@ -531,6 +549,7 @@ func Run(c *Config) {
 
 	<-quit
 	stopDaemon <- 1
+	close(closingC)
 
 	logger.Info("Shutting down")
 	d.Shutdown()
@@ -538,6 +557,7 @@ func Run(c *Config) {
 }
 
 func main() {
+
 	/*
 		mzcoin.Run(&cli.DaemonArgs)
 	*/
