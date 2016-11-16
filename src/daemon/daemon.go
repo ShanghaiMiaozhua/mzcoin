@@ -10,12 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/op/go-logging.v1"
-
-	//"github.com/wudaofan/mzcoin/src/daemon/gnet"
-	"github.com/wudaofan/mzcoin/src/daemon/gnet"
-	"github.com/wudaofan/mzcoin/src/daemon/pex"
-	"github.com/wudaofan/mzcoin/src/util"
+	logging "github.com/op/go-logging"
+	"github.com/skycoin/skycoin/src/daemon/gnet"
+	"github.com/skycoin/skycoin/src/daemon/pex"
+	"github.com/skycoin/skycoin/src/util"
 )
 
 /*
@@ -68,7 +66,11 @@ var (
 		//ConnectFailed:                       time.Minute * 60,
 	}
 
+<<<<<<< HEAD
 	logger = logging.MustGetLogger("mzcoin.daemon")
+=======
+	logger = logging.MustGetLogger("daemon")
+>>>>>>> 1fc6ac08dad48fb9b7cfbffa6c0d8069850af44a
 )
 
 // Subsystem configurations

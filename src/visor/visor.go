@@ -3,7 +3,6 @@ package visor
 import (
 	"errors"
 
-	//"fmt"
 	"log"
 	"time"
 
@@ -16,7 +15,7 @@ import (
 )
 
 var (
-	logger = logging.MustGetLogger("mzcoin.visor")
+	logger = logging.MustGetLogger("visor")
 )
 
 // Configuration parameters for the Visor

@@ -40,6 +40,7 @@ var (
 		"wallet",
 		"gnet",
 		"pex",
+		"webrpc",
 	}
 
 	//clear these after loading [????]

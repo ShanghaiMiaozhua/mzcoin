@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wudaofan/mzcoin/src/util"
-	"gopkg.in/op/go-logging.v1"
+	logging "github.com/op/go-logging"
+	"github.com/skycoin/skycoin/src/util"
 )
 
 //TODO:

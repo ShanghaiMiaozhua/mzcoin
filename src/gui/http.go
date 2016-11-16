@@ -1,16 +1,13 @@
 package gui
 
 import (
-	//"crypto/tls"
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
-	//"os"
 	"path/filepath"
-	//"strings"
 
 	logging "github.com/op/go-logging"
 	"github.com/skycoin/skycoin/src/daemon"
@@ -20,7 +17,7 @@ import (
 )
 
 var (
-	logger = logging.MustGetLogger("skycoin.gui")
+	logger = logging.MustGetLogger("gui")
 )
 
 const (

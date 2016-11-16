@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"time"
 
-	"gopkg.in/op/go-logging.v1"
-
 	"encoding/hex"
 
-	"github.com/wudaofan/mzcoin/src/cipher"
+	logging "github.com/op/go-logging"
+	"github.com/skycoin/skycoin/src/cipher"
 	//"math/rand"
 )
 
 var (
-	logger = logging.MustGetLogger("mzcoin.visor")
+	logger = logging.MustGetLogger("wallet")
 )
 
 const WalletExt = "wlt"
