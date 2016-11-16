@@ -2,7 +2,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-echo "skycoin binary dir:" "$DIR"
+echo "mzcoin binary dir:" "$DIR"
 
 pushd "$DIR" >/dev/null
 #./scripts/clean-static-libs.sh >/dev/null 2>&1
