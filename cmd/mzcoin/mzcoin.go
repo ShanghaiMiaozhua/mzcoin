@@ -29,15 +29,15 @@ import (
 
 var (
 	logger     = logging.MustGetLogger("mzcoin.main")
-	logFormat  = "[%{module}:%{level}] %{message}"
+	logFormat  = "[mzcoin.%{module}:%{level}] %{message}"
 	logModules = []string{
-		"mzcoin.main",
-		"mzcoin.daemon",
-		"mzcoin.coin",
-		"mzcoin.gui",
-		"mzcoin.util",
-		"mzcoin.visor",
-		"mzcoin.wallet",
+		"main",
+		"daemon",
+		"coin",
+		"gui",
+		"util",
+		"visor",
+		"wallet",
 		"gnet",
 		"pex",
 	}
@@ -55,10 +55,11 @@ var (
 	// DefaultServers = []string{
 	// 	"40.74.80.119:6001",
 	DefaultConnections = []string{
-		"13.76.90.237:6000",
-		"40.74.142.139:6000",
-		"188.226.245.87:6000",
-		"40.74.80.119:6000",
+		"40.74.80.119:6001",
+		"13.76.90.237:6001",
+		"40.74.142.139:6001",
+		"188.226.245.87:6001",
+		"40.74.80.119:6001",
 	}
 )
 
