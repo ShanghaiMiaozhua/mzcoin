@@ -28,7 +28,7 @@ import (
 //"github.com/wudaofan/mzcoin/src/wallet"
 
 var (
-	logger     = logging.MustGetLogger("mzcoin.main")
+	logger     = logging.MustGetLogger("main")
 	logFormat  = "[mzcoin.%{module}:%{level}] %{message}"
 	logModules = []string{
 		"main",
