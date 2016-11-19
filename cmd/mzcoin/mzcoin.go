@@ -360,7 +360,7 @@ var devConfig Config = Config{
 	// public interface
 	Address: "",
 	//gnet uses this for TCP incoming and outgoing
-	Port: 6001,
+	Port: 7000,
 
 	MaxConnections: 16,
 	// How often to make outgoing connections, in seconds
@@ -369,7 +369,7 @@ var devConfig Config = Config{
 	//AddressVersion: "test",
 	// Remote web interface
 	WebInterface:             true,
-	WebInterfacePort:         6421,
+	WebInterfacePort:         7420,
 	WebInterfaceAddr:         "127.0.0.1",
 	WebInterfaceCert:         "",
 	WebInterfaceKey:          "",
