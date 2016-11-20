@@ -41,23 +41,23 @@ export PATH=$PATH:$GOPATH/bin
 brew install mercurial bzr
 ```
 
-5) Fetch the latest code of skycoin from the github repository
+5) Fetch the latest code of mzcoin from the github repository
 
 ```
-go get github.com/skycoin/skycoin
+go get github.com/ShanghaiKuaibei/mzcoin
 ```
 
-6) Change your current directory to $GOPATH/src/github.com/skycoin/skycoin
+6) Change your current directory to $GOPATH/src/github.com/ShanghaiKuaibei/mzcoin
 
 ```
-cd $GOPATH/src/github.com/skycoin/skycoin
+cd $GOPATH/src/github.com/ShanghaiKuaibei/mzcoin
 ```
 
 7) Install glock and sync all the dependencies 
 
 ```
 go get github.com/robfig/glock
-glock sync github.com/skycoin/skycoin
+glock sync github.com/ShanghaiKuaibei/mzcoin
 ```
 
 8) Run the node ;)
@@ -125,7 +125,7 @@ To update dependencies
 glock save github.com/mzcoin/mzcoin/cmd/mzcoin
 ```
 
-Running A Skycoin Node
+Running A mzcoin Node
 ---
 
 ```
@@ -160,7 +160,7 @@ go get github.com/mitchellh/gox
 Compile:
 ```
 gox --help
-gox [options] cmd/skycoin/
+gox [options] cmd/mzcoin/
 ```
 
 Local Server API
