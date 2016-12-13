@@ -49,12 +49,12 @@ function copy_if_exists {
     fi
 }
 
-echo "Copying skycoin binaries"
+echo "Copying mzcoin binaries"
 
 # copy binaries
-copy_if_exists "skycoin_darwin_amd64" "$OSX64" "skycoin" "$OSX64_SRC"
-copy_if_exists "skycoin_windows_amd64.exe" "$WIN64" "skycoin.exe" "$WIN64_SRC"
-copy_if_exists "skycoin_linux_amd64" "$LNX64" "skycoin" "$LNX64_SRC"
+copy_if_exists "mzcoin_darwin_amd64" "$OSX64" "mzcoin" "$OSX64_SRC"
+copy_if_exists "mzcoin_windows_amd64.exe" "$WIN64" "mzcoin.exe" "$WIN64_SRC"
+copy_if_exists "mzcoin_linux_amd64" "$LNX64" "mzcoin" "$LNX64_SRC"
 
 # Copy the source for reference
 # tar it with filters, move it, then untar in order to do this

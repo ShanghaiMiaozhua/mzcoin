@@ -12,7 +12,7 @@ if it does not exist.  Defaults to the working directory.
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 CMDDIR="../cmd"  # relative to compile/electron/
-CMD="skycoin"
+CMD="mzcoin"
 
 OSARCH="$1"
 OUTPUT="$2"

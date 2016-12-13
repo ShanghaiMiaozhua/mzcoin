@@ -22,7 +22,7 @@ app.commandLine.appendSwitch('ssl-version-fallback-min', 'tls1.2');
 app.commandLine.appendSwitch('--no-proxy-server');
 // app.commandLine.appendSwitch('cipher-suite-blacklist', '');
 
-app.setAsDefaultProtocolClient('skycoin');
+app.setAsDefaultProtocolClient('mzcoin');
 
 // Module to create native browser window.
 const { BrowserWindow } = electron;
@@ -61,7 +61,7 @@ var skycoin = null;
 // logExec('ls');
 
 function startSkycoin() {
-    console.log('Starting skycoin from electron');
+    console.log('Starting mzcoin from electron');
 
     // console.log('=====\n\n');
     // // console.log(app.getPath('app'));
@@ -69,7 +69,7 @@ function startSkycoin() {
     // console.log('\n\n=====');
 
     if (skycoin) {
-        console.log('Skycoin already running');
+        console.log('Mzcoin already running');
         app.emit('skycoin-ready');
         return
     }
@@ -83,15 +83,15 @@ function startSkycoin() {
     var exe = (() => {
         switch (process.platform) {
             case 'darwin':
-                return path.join(appPath, '../../Resources/app/skycoin');
+                return path.join(appPath, '../../Resources/app/mzcoin');
             case 'win32':
                 // Use only the relative path on windows due to short path length
                 // limits
-                return './resources/app/skycoin.exe';
+                return './resources/app/mzcoin.exe';
             case 'linux':
-                return path.join(path.dirname(appPath), './resources/app/skycoin');
+                return path.join(path.dirname(appPath), './resources/app/mzcoin');
             default:
-                return './resources/app/skycoin';
+                return './resources/app/mzcoin';
         }
     })()
     var args = [
@@ -107,7 +107,7 @@ function startSkycoin() {
     skycoin = childProcess.spawn(exe, args);
 
     skycoin.on('error', (e) => {
-        dialog.showErrorBox('Failed to start skycoin', e.toString());
+        dialog.showErrorBox('Failed to start mzcoin', e.toString());
         app.quit();
     });
 
@@ -139,12 +139,12 @@ function startSkycoin() {
     });
 
     skycoin.on('close', (code) => {
-        console.log('Skycoin closed');
+        console.log('Mzcoin closed');
         reset();
     });
 
     skycoin.on('exit', (code) => {
-        console.log('Skycoin exited');
+        console.log('Mzcoin exited');
         reset();
     });
 }
@@ -158,7 +158,7 @@ function createWindow(url) {
     win = new BrowserWindow({
         width: 1200,
         height: 900,
-        title: 'Skycoin',
+        title: 'Mzcoin',
         nodeIntegration: false,
         webPreferences: {
             webgl: false,

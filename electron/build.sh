@@ -16,6 +16,7 @@ pushd "$SCRIPTDIR" >/dev/null
 echo "Compiling with gox"
 
 # Build with gox here and make the other scripts skip it
+
 ./gox.sh "$GOX_OSARCH" "$GOX_OUTPUT"
 
 echo "Installing node modules"
