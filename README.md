@@ -1,5 +1,4 @@
-
-Mzcoin
+Mzcoin [![GoDoc](https://godoc.org/github.com/ShanghaiKuaibei/mzcoin?status.svg)](https://godoc.org/github.com/ShanghaiKuaibei/mzcoin) [![Go Report Card](https://goreportcard.com/badge/github.com/ShanghaiKuaibei/mzcoin)](https://goreportcard.com/report/github.com/ShanghaiKuaibei/mzcoin) 
 =======
 
 Mzcoin is children's education coin created by mzworld.
@@ -97,8 +96,8 @@ The mzcoin repo must be in $GOPATH, under "/src/github.com/ShanghaiKuaibei". Oth
 
 ```
 #pull mzcoin repo into the gopath
-#note: puts the mzcoin folder in $GOPATH/src/github.com/mzcoin/mzcoin
-$ go get github.com/mzcoin/mzcoin
+#note: puts the mzcoin folder in $GOPATH/src/github.com/ShanghaiKuaibei/mzcoin
+$ go get github.com/ShanghaiKuaibei/mzcoin
 
 #create symlink of the repo
 $ cd $HOME
@@ -134,7 +133,6 @@ $ go run ./cmd/mzcoin/mzcoin.go
 
 Use gvm package set, so repo does not need to be symlinked. Does this have a default option?
 ```
-<<<<<<< HEAD
 $ gvm pkgset create mzcoin
 $ gvm pkgset use mzcoin
 $ git clone https://github.com/ShanghaiKuaibei/mzcoin
