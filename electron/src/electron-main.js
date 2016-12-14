@@ -13,7 +13,7 @@ require('electron-debug')({ enabled: true, showDevTools: false });
 
 const { app } = electron;
 
-const defaultURL = 'http://127.0.0.1:6420/';
+const defaultURL = 'http://127.0.0.1:7420/';
 let currentURL;
 
 // Force everything localhost, in case of a leak
@@ -156,7 +156,7 @@ function createWindow(url) {
 
     // Create the browser window.
     win = new BrowserWindow({
-        width: 1200,
+        width: 980,
         height: 900,
         title: 'Mzcoin',
         nodeIntegration: false,
