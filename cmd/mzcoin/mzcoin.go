@@ -218,6 +218,73 @@ func (c *Config) register() {
 	//	"Wallet address version. Options are 'test' and 'main'")
 }
 
+var devConfig Config = Config{
+	// Disable peer exchange
+	DisablePEX: true,
+	// Don't make any outgoing connections
+	DisableOutgoingConnections: false,
+	// Don't allowing incoming connections
+	DisableIncomingConnections: false,
+	// Disables networking altogether
+	DisableNetworking: false,
+	// Only run on localhost and only connect to others on localhost
+	LocalhostOnly: false,
+	// Which address to serve on. Leave blank to automatically assign to a
+	// public interface
+	Address: "",
+	//gnet uses this for TCP incoming and outgoing
+	Port: 7000,
+
+	MaxConnections: 16,
+	// How often to make outgoing connections, in seconds
+	OutgoingConnectionsRate: time.Second * 5,
+	// Wallet Address Version
+	//AddressVersion: "test",
+	// Remote web interface
+	WebInterface:             true,
+	WebInterfacePort:         7420,
+	WebInterfaceAddr:         "127.0.0.1",
+	WebInterfaceCert:         "",
+	WebInterfaceKey:          "",
+	WebInterfaceHTTPS:        false,
+	PrintWebInterfaceAddress: false,
+	LaunchBrowser:            true,
+	// Data directory holds app data -- defaults to ~/.mzcoin
+	DataDirectory: ".mzcoin",
+	// Web GUI static resources
+	GUIDirectory: "./src/gui/static/",
+	// Logging
+	LogLevel: logging.DEBUG,
+	ColorLog: true,
+	logLevel: "DEBUG",
+
+	// Wallets
+	WalletDirectory: "",
+	BlockchainFile:  "",
+	BlockSigsFile:   "",
+
+	// Centralized network configuration
+	RunMaster:        false,
+	BlockchainPubkey: cipher.PubKey{},
+	BlockchainSeckey: cipher.SecKey{},
+
+	GenesisAddress:   cipher.Address{},
+	GenesisTimestamp: GenesisTimestamp,
+	GenesisSignature: cipher.Sig{},
+
+	/* Developer options */
+
+	// Enable cpu profiling
+	ProfileCPU: false,
+	// Where the file is written to
+	ProfileCPUFile: "mzcoin.prof",
+	// HTTP profiling interface (see http://golang.org/pkg/net/http/pprof/)
+	HTTPProf: false,
+	// Will force it to connect to this ip:port, instead of waiting for it
+	// to show up as a peer
+	ConnectTo: "",
+}
+
 func (c *Config) Parse() {
 	c.register()
 	flag.Parse()
@@ -340,73 +407,6 @@ func initProfiling(httpProf, profileCPU bool, profileCPUFile string) {
 			log.Println(http.ListenAndServe("localhost:6060", nil))
 		}()
 	}
-}
-
-var devConfig Config = Config{
-	// Disable peer exchange
-	DisablePEX: true,
-	// Don't make any outgoing connections
-	DisableOutgoingConnections: false,
-	// Don't allowing incoming connections
-	DisableIncomingConnections: false,
-	// Disables networking altogether
-	DisableNetworking: false,
-	// Only run on localhost and only connect to others on localhost
-	LocalhostOnly: false,
-	// Which address to serve on. Leave blank to automatically assign to a
-	// public interface
-	Address: "",
-	//gnet uses this for TCP incoming and outgoing
-	Port: 7000,
-
-	MaxConnections: 16,
-	// How often to make outgoing connections, in seconds
-	OutgoingConnectionsRate: time.Second * 5,
-	// Wallet Address Version
-	//AddressVersion: "test",
-	// Remote web interface
-	WebInterface:             true,
-	WebInterfacePort:         7420,
-	WebInterfaceAddr:         "127.0.0.1",
-	WebInterfaceCert:         "",
-	WebInterfaceKey:          "",
-	WebInterfaceHTTPS:        false,
-	PrintWebInterfaceAddress: false,
-	LaunchBrowser:            true,
-	// Data directory holds app data -- defaults to ~/.mzcoin
-	DataDirectory: ".mzcoin",
-	// Web GUI static resources
-	GUIDirectory: "./src/gui/static/",
-	// Logging
-	LogLevel: logging.DEBUG,
-	ColorLog: true,
-	logLevel: "DEBUG",
-
-	// Wallets
-	WalletDirectory: "",
-	BlockchainFile:  "",
-	BlockSigsFile:   "",
-
-	// Centralized network configuration
-	RunMaster:        false,
-	BlockchainPubkey: cipher.PubKey{},
-	BlockchainSeckey: cipher.SecKey{},
-
-	GenesisAddress:   cipher.Address{},
-	GenesisTimestamp: GenesisTimestamp,
-	GenesisSignature: cipher.Sig{},
-
-	/* Developer options */
-
-	// Enable cpu profiling
-	ProfileCPU: false,
-	// Where the file is written to
-	ProfileCPUFile: "mzcoin.prof",
-	// HTTP profiling interface (see http://golang.org/pkg/net/http/pprof/)
-	HTTPProf: false,
-	// Will force it to connect to this ip:port, instead of waiting for it
-	// to show up as a peer
-	ConnectTo: "",
 }
 
 func configureDaemon(c *Config) daemon.Config {
