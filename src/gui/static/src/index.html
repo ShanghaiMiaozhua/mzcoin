@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Mzcoin</title>
+    <title>Skycoin</title>
     <link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/x-icon">
     <link href="libs/css/bootstrap.css" rel="stylesheet">
     <link href="libs/css/animate.css" rel="stylesheet">
@@ -31,6 +31,13 @@
 
 <body>
     <load-wallet>Loading...</load-wallet>
+    <!-- Insert this line above script imports  -->
+    <script>
+        if (typeof module === 'object') {
+            window.module = module;
+            module = undefined;
+        }
+    </script>
     <script src="libs/js/jquery.js"></script>
     <script src="libs/js/moment.js"></script>
     <script src="libs/js/underscore.min.js"></script>
