@@ -551,13 +551,14 @@ func Run(c *Config) {
 
 	//first transaction
 	if c.RunMaster == true {
+		//log.Printf("BLOCK SEQ= %d \n", d.Visor.Visor.Blockchain.Head().Seq())
 		go func() {
-			for d.Visor.Visor.Blockchain.Head().Seq() < 2 {
-				time.Sleep(5)
+			for d.Visor.Visor.Blockchain.Head().Seq() < 1 {
+				time.Sleep(5 * time.Second)
 				tx := InitTransaction()
 				err, _ := d.Visor.Visor.InjectTxn(tx)
 				if err != nil {
-					//log.Panic(err)
+					log.Printf("%s\n", err)
 				}
 			}
 		}()
@@ -695,8 +696,8 @@ var AddrList []string = []string{
 
 func InitTransaction() coin.Transaction {
 
-	genesis_output := "5bf4b9f6a4ff437ce6a5087494aa7b40844db26f79489fb2c5c0eb9760fef105"
-	genesis_sig := "fb118bb39763825941e630b8bd64542ab62d3f663dc431263cf380212b0bfe993a5f77fcc968250b0776961daab710e897db43ba6dab66de3bc28667e0a96bb401" //sig for spending genesis output
+	genesis_output := "33dc904e0e697509b216d13cafbae49cc4b3da7073bab19e85a6d428645f429e"
+	genesis_sig := "9244e5a6bb7db77a796951324110439d04f1770a28ae22c92f22c9fb23c522fb0498a384e907524764fa7670981588e5994edf810d6db8feda487ff30183cad401" //sig for spending genesis output
 
 	var tx coin.Transaction
 
