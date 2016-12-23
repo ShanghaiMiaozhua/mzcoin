@@ -696,7 +696,7 @@ var AddrList []string = []string{
 func InitTransaction() coin.Transaction {
 
 	genesis_output := "5bf4b9f6a4ff437ce6a5087494aa7b40844db26f79489fb2c5c0eb9760fef105"
-	genesis_sig := "a8beabd616b660dc3ec28a077fe85582ed079870c5fee3136e1b642ad4e5be70612973f69afc5cfbdf60c8b798bd4f050bf13be0fb2ce550c25d33a8492c0b5f01" //sig for spending genesis output
+	genesis_sig := "fb118bb39763825941e630b8bd64542ab62d3f663dc431263cf380212b0bfe993a5f77fcc968250b0776961daab710e897db43ba6dab66de3bc28667e0a96bb401" //sig for spending genesis output
 
 	var tx coin.Transaction
 
