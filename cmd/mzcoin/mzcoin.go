@@ -463,7 +463,10 @@ func Run(c *Config) {
 	}
 
 	initProfiling(c.HTTPProf, c.ProfileCPU, c.ProfileCPUFile)
-	initLogging(c.LogLevel, c.ColorLog)
+	// initLogging(c.LogLevel, c.ColorLog)
+	logCfg := util.DevLogConfig(logModules)
+	logCfg.Format = logFormat
+	logCfg.InitLogger()
 
 	// start the block db.
 	blockdb.Start()
