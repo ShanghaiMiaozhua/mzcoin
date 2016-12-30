@@ -3,7 +3,7 @@ package webrpc
 import (
 	"net/http"
 
-	logging "github.com/op/go-logging"
+	"github.com/skycoin/skycoin/src/util"
 
 	"encoding/json"
 
@@ -32,7 +32,7 @@ var (
 	jsonRPC = "2.0"
 )
 
-var logger = logging.MustGetLogger("webrpc")
+var logger = util.MustGetLogger("webrpc")
 
 // Request rpc request struct
 type Request struct {
@@ -118,12 +118,22 @@ func makeRPC(args ...Arg) *rpcHandler {
 	rpc := newRPCHandler(args...)
 
 	// register handlers
+	// get service status
 	rpc.HandlerFunc("get_status", getStatusHandler)
+	// get blocks by seq
+	rpc.HandlerFunc("get_blocks_by_seq", getBlocksBySeqHandler)
+	// get last N blocks
 	rpc.HandlerFunc("get_lastblocks", getLastBlocksHandler)
+	// get blocks in specific seq range
 	rpc.HandlerFunc("get_blocks", getBlocksHandler)
+	// get unspent outputs of address
 	rpc.HandlerFunc("get_outputs", getOutputsHandler)
+	// get transaction by txid
 	rpc.HandlerFunc("get_transaction", getTransactionHandler)
+	// broadcast transaction
 	rpc.HandlerFunc("inject_transaction", injectTransactionHandler)
+	// get address affected uxouts
+	rpc.HandlerFunc("get_address_uxouts", getAddrUxOutsHandler)
 
 	return rpc
 }

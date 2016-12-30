@@ -1,5 +1,4 @@
 Mzcoin [![GoDoc](https://godoc.org/github.com/ShanghaiKuaibei/mzcoin?status.svg)](https://godoc.org/github.com/ShanghaiKuaibei/mzcoin) [![Go Report Card](https://goreportcard.com/badge/github.com/ShanghaiKuaibei/mzcoin)](https://goreportcard.com/report/github.com/ShanghaiKuaibei/mzcoin) 
-=======
 
 Mzcoin is children's education coin created by mzworld.
 
@@ -7,12 +6,6 @@ Installation
 ------------
 
 *For detailed installation instructions, see [Installing mzcoin](../../wiki/Installation)*
-
-## For linux:
-
-```sh
-$ sudo apt-get install curl git mercurial make binutils gcc bzr bison libgmp3-dev screen -y
-```
 
 ## For OSX:
 
@@ -29,7 +22,7 @@ $ brew install go
 3) Setup $GOPATH variable, add it to ~/.bash_profile (or bashrc). After editing, open a new tab
 Add to `bashrc` or `bash_profile`
 ```sh
-$ export GOPATH=/Users/<username>/go 
+$ export GOPATH=/Users/<username>/go
 $ export PATH=$PATH:$GOPATH/bin
 
 ```
@@ -51,26 +44,27 @@ $ go get github.com/ShanghaiKuaibei/mzcoin
 $ cd $GOPATH/src/github.com/ShanghaiKuaibei/mzcoin
 ```
 
-7) Install glock and sync all the dependencies 
-```
-$ go get github.com/robfig/glock
-$ glock sync github.com/ShanghaiKuaibei/mzcoin
-```
-
-8) Run the node ;)
-```
-$ ./run.sh -h
-```
-
-9) Running Wallet
+7) Running Wallet
 
 ```
 $ ./run.sh
+OR
+# go run ./cmd/skycoin/skycoin.go
+For Options
+# go run ./cmd/skycoin/skycoin.go --help
 ```
 
-Then open `http://127.0.0.1:6402` in a browser.
+## For linux:
 
-## Golang ENV setup with gvm
+```sh
+$ sudo apt-get install curl git mercurial make binutils gcc bzr bison libgmp3-dev screen -y
+```
+
+#Setup Golang
+- use gvm
+- else download binary and follow instructions
+
+#Golang ENV setup with gvm
 
 In China, use `--source=https://github.com/golang/go` to bypass firewall when fetching golang source
 
@@ -81,14 +75,14 @@ $ source $HOME/.gvm/scripts/gvm
 
 $ gvm install go1.4 --source=https://github.com/golang/go
 $ gvm use go1.4
-$ gvm install go1.6
-$ gvm use go1.6 --default
+$ gvm install go1.7
+$ gvm use go1.7 --default
 ```
 
 If you open up new terminal and the go command is not found then add this to .bashrc . GVM should add this automatically
 ```
 $ [[ -s "$HOME/.gvm/scripts/gvm" ]] && source "$HOME/.gvm/scripts/gvm"
-$ gvm use go1.6 >/dev/null
+$ gvm use go1.7 >/dev/null
 ```
 
 
@@ -97,7 +91,7 @@ The mzcoin repo must be in $GOPATH, under "/src/github.com/ShanghaiKuaibei". Oth
 ```
 #pull mzcoin repo into the gopath
 #note: puts the mzcoin folder in $GOPATH/src/github.com/ShanghaiKuaibei/mzcoin
-$ go get github.com/ShanghaiKuaibei/mzcoin
+$ go get -v github.com/ShanghaiKuaibei/mzcoin/...
 
 #create symlink of the repo
 $ cd $HOME
@@ -107,18 +101,20 @@ $ ln -s $GOPATH/src/github.com/ShanghaiKuaibei/mzcoin mzcoin
 Dependencies
 ------------
 
+Dependencies are managed with [gvt](https://github.com/FiloSottile/gvt).
+
+To install gvt:
 ```
-$ go get github.com/robfig/glock
-$ glock sync github.com/ShanghaiKuaibei/mzcoin
-$ go get ./cmd/mzcoin
+$ go get -u github.com/FiloSottile/gvt
 ```
 
-To update dependencies
-```
-$ glock save github.com/ShanghaiKuaibei/mzcoin/cmd/mzcoin
-```
+gvt vendors all dependencies into the repo.
 
-Running A mzcoin Node
+If you change the dependencies, you should update them as needed with `gvt fetch`, `gvt update`, `gvt delete`, etc.
+
+Refer to the [gvt documentation](https://github.com/FiloSottile/gvt) or `gvt help` for further instructions.
+
+Running A Mzcoin Node
 ----------------------
 
 ```
@@ -228,4 +224,12 @@ Rebuilding Wallet HTML
 ```sh
 $ npm install
 $ gulp build
+```
+
+Release Builds
+----
+
+```sh
+$ npm install
+$ gulp dist
 ```

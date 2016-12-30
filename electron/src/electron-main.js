@@ -1,6 +1,7 @@
 'use strict'
 
 global.eval = function() { throw new Error('bad!!'); }
+    // var log = require('electron-log');
 
 const path = require('path');
 
@@ -33,7 +34,7 @@ const childProcess = require('child_process');
 
 const cwd = require('process').cwd();
 
-console.log('working directory: ' + cwd);
+// console.log('working directory: ' + cwd);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -94,6 +95,7 @@ function startSkycoin() {
                 return './resources/app/mzcoin';
         }
     })()
+
     var args = [
         '-launch-browser=false',
         '-gui-dir=' + path.dirname(exe),
@@ -112,6 +114,7 @@ function startSkycoin() {
     });
 
     skycoin.stdout.on('data', (data) => {
+        // log.info(data.toString());
         console.log(data.toString());
 
         // Scan for the web URL string
@@ -136,6 +139,7 @@ function startSkycoin() {
     });
 
     skycoin.stderr.on('data', (data) => {
+        // log.info(data.toString());
         console.log(data.toString());
     });
 

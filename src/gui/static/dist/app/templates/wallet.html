@@ -49,6 +49,7 @@
             </li>
         </ul>
         <div class="tab-content">
+<<<<<<< HEAD
             <div [class.active]="displayMode === displayModeEnum.first" class="tab-pane ng-scope active">
                 <div style="padding:0 10px 20px 10px;display:inline-block;width:100%">
                     <div class="wallet-buttons">
@@ -90,6 +91,49 @@
                     </table>
                     <!-- historyPager -->
                 </div>
+=======
+            <div [class.active]="displayMode === displayModeEnum.first"  class="tab-pane ng-scope active">
+              <div style="padding:0 10px 20px 10px;display:inline-block;width:100%">
+                <div class="wallet-buttons">
+                    <button class="btn btn-default" type="button" (click)="showNewWalletDialog()"><i class="fa fa-plus-square"></i> New Wallet</button>
+                    <button class="btn btn-default" type="button" (click)="openLoadWallet()"><i class="fa fa-circle-o"></i> Load Wallet From Seed</button>
+                </div>
+                  <table id="overview-wallet" class="outline" >
+                      <thead>
+                      <tr class="dark-row">
+                        <td style="width:30px;"></td>
+                        <td>Label</td>
+                        <td>Address</td>
+                        <td>Address Balance</td>
+                        <td>Wallet Balance</td>
+                        <td class="text-right">Addresses</td>
+                      </tr>
+                    </thead>
+                        <tbody *ngFor="let wallet of wallets">
+                          <tr>
+                            <td>
+                              <a href="#" (click)="toggleShowChild(wallet)" *ngIf="!wallet.showChild"><i class="fa fa-angle-right"></i></a>
+                              <a href="#" (click)="toggleShowChild(wallet)" *ngIf="wallet.showChild"><i class="fa fa-angle-down"></i></a>
+                            </td>
+                            <td><a href="#" (click)="editWallet(wallet)"><i class="fa fa-edit"></i></a>&nbsp;{{wallet.meta.label?wallet.meta.label:'Undefined'}}</td>
+                            <td><a href="#" (click)="showQR(wallet)">&nbsp;<i class="fa fa-qrcode"></i></a>&nbsp;{{wallet.entries[0].address}}</td>
+                            <td><a href="#" (click)="switchTab(displayModeEnum.second, wallet)" ><i class="fa fa-cloud-upload"></i></a>&nbsp;{{wallet.entries[0].balance}} SKY</td>
+                            <td><a href="#" (click)="switchTab(displayModeEnum.second, wallet)" ><i class="fa fa-cloud-upload"></i></a>&nbsp;{{wallet.balance}} SKY</td>
+                            <td class="text-right">{{wallet.entries.length}}&nbsp;<a href="#" (click)="addNewAddress(wallet)"><i class="fa fa-plus"></i></a></td>
+                          </tr>
+                          <tr *ngFor="let entry of wallet.entries; let idx=index" [hidden]="!wallet.showChild||idx==0">
+                            <td></td>
+                            <td><a href="#" (click)="editWallet(wallet)"><i class="fa fa-edit"></i></a>&nbsp;{{wallet.meta.label?wallet.meta.label:'Undefined'}}({{idx}})</td>
+                            <td><a href="#" (click)="showQR(wallet)">&nbsp;<i class="fa fa-qrcode"></i></a>&nbsp;{{entry.address}}</td>
+                            <td><a href="#" (click)="switchTab(displayModeEnum.second, wallet)" ><i class="fa fa-cloud-upload"></i></a>&nbsp;{{entry.balance?entry.balance:0}} SKY</td>
+                            <td></td>
+                            <td class="text-right"></td>
+                          </tr>
+                      </tbody>
+                  </table>
+                  <!-- historyPager -->
+              </div>
+>>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
             </div>
 
             <div tab-content-transclude="tab" [class.active]="displayMode === displayModeEnum.second" class="tab-pane ng-scope">
@@ -100,8 +144,13 @@
                             <div class="col-sm-6">
                                 <select class="form-control" #selectedWallet2 (change)="onSelectWallet(selectedWallet2.value)">
                               <option>Select Wallet</option>
+<<<<<<< HEAD
                               <option *ngFor="#item of walletsWithAddress" [disabled]="item.type=='address'" [selected]="item.type=='wallet'&&item.wallet.meta.filename==spendid" value="{{item.type=='wallet'?item.wallet.meta.filename:''}}">
                                 {{item.type=='wallet'?(item.wallet.meta.label?item.wallet.meta.label:'Undefined') + '(All) - ' + item.wallet.balance + 'MZC':(item.wallet.meta.label?item.wallet.meta.label:'Undefined') + item.idx + '(' + item.entry.address + ') - ' + (item.entry.balance?item.entry.balance:0) + ' MZC'}}
+=======
+                              <option *ngFor="let item of walletsWithAddress" [disabled]="item.type=='address'" [selected]="item.type=='wallet'&&item.wallet.meta.filename==spendid" value="{{item.type=='wallet'?item.wallet.meta.filename:''}}">
+                                {{item.type=='wallet'?(item.wallet.meta.label?item.wallet.meta.label:'Undefined') + '(All) - ' + item.wallet.balance + 'SKY':(item.wallet.meta.label?item.wallet.meta.label:'Undefined') + item.idx + '(' + item.entry.address + ') - ' + (item.entry.balance?item.entry.balance:0) + ' SKY'}}
+>>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
                               </option>
                             </select>
                             </div>
@@ -143,6 +192,7 @@
                     <div style="width:100%;overflow:auto;">
                         <table id="pending-table">
                             <tbody>
+<<<<<<< HEAD
                                 <tr class="dark-row">
                                     <td>Time</td>
                                     <td>Status</td>
@@ -159,6 +209,24 @@
                                     <td>{{transaction.txn.amount}}</td>
                                     <td>{{transaction.txn.txid}}</td>
                                 </tr>
+=======
+                            <tr class="dark-row">
+                                <td>Time</td>
+                                <td>Status</td>
+                                <td>Address</td>
+                                <td>Notes</td>
+                                <td>Amount</td>
+                                <td>Transaction ID</td>
+                            </tr>
+                            <tr *ngFor="let transaction of pendingTable">
+                                <td>{{getDateTimeString(transaction.txn.time)}}</td>
+                                <td>{{transaction.balance.confirmed.coins?'Completed':'Pending'}}</td>
+                                <td>{{transaction.txn.address}}</td>
+                                <td></td>
+                                <td>{{transaction.txn.amount}}</td>
+                                <td>{{transaction.txn.txid}}</td>
+                            </tr>
+>>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
                             </tbody>
                         </table>
                     </div>
@@ -185,6 +253,7 @@
                                     <td style="width:80px">
                                         <a href="#" (click)="sortHistory('time')" class="text-underline">Time
                               <i *ngIf="sortDir.time!=0" class="glyphicon glyphicon-triangle-{{sortDir.time==1?'top':'bottom'}}"></i></a>
+<<<<<<< HEAD
                                     </td>
                                     <td>Status</td>
                                     <td>Type</td>
@@ -209,6 +278,33 @@
                             </tbody>
                         </table>
                     </div>
+=======
+                            </td>
+                            <td>Status</td>
+                            <td>Type</td>
+                            <td>Addresses</td>
+                            <td>Notes</td>
+                            <td>Amount</td>
+                            <td>Transaction ID</td>
+                        </tr>
+                      </thead>
+                          <tbody >
+                            <tr *ngFor="let transaction of historyPagedItems">
+                              <td>{{getDateTimeString(transaction.txn.timestamp)}}</td>
+                              <td>{{transaction.status.confirmed?'Complete':'Pending'}}</td>
+                              <td>{{transaction.txn.type}}</td>
+                              <td>
+                                From : <span *ngFor="let item of transaction.txn.inputs">{{item}},<br></span>
+                                To : <span *ngFor="let item of transaction.txn.outputs">{{item.dst}},<br></span>
+                              </td>
+                              <td>{{transaction.notes}}</td>
+                              <td>{{GetTransactionAmount(transaction)}}</td>
+                              <td>{{transaction.txn.txid}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                  </div>
+>>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
                     <ul *ngIf="historyPager.pages&&historyPager.currentPage&&historyPager.pages.length" class="pagination">
                         <li [ngClass]="{disabled:historyPager.currentPage === 1}">
                             <a (click)="setHistoryPage(1)">First</a>
@@ -216,7 +312,7 @@
                         <li [ngClass]="{disabled:historyPager.currentPage === 1}">
                             <a (click)="setHistoryPage(historyPager.currentPage - 1)">Previous</a>
                         </li>
-                        <li *ngFor="#page of historyPager.pages" [ngClass]="{active:historyPager.currentPage === page}">
+                        <li *ngFor="let page of historyPager.pages" [ngClass]="{active:historyPager.currentPage === page}">
                             <a (click)="setHistoryPage(page)">{{page}}</a>
                         </li>
                         <li [ngClass]="{disabled:historyPager.currentPage === historyPager.totalPages}">
@@ -335,6 +431,7 @@
                             </tbody>
                         </table>
                     </div>
+<<<<<<< HEAD
                     <div *ngIf="blockViewMode=='blockTransactionDetail'">
                         <div>
                             <a href="#" (click)="showRecentBlock()" class="text-underline"><i class="fa fa-arrow-left"></i> Recent Blocks</a>
@@ -412,6 +509,178 @@
                             </tbody>
                         </table>
                     </div>
+=======
+                </form>
+                <div *ngIf="blockViewMode=='recentBlocks'">
+                  <p>Recent Blocks<p>
+                  <table id="transaction-table">
+                      <thead>
+                      <tr class="dark-row">
+                          <td>Time</td>
+                          <td>Block #</td>
+                          <td>Transactions</td>
+                          <td>Amount Transferred</td>
+                          <td>Transaction ID</td>
+                      </tr>
+                    </thead>
+                        <tbody >
+                          <tr *ngFor="let block of blockPagedItems">
+                            <td>{{getDateTimeString(block.header.timestamp)}}</td>
+                            <td><a href="#" (click)="showBlockDetail(block)" class="text-underline">{{block.header.seq}}</a></td>
+                            <td>{{block.body.txns.length}}</td>
+                            <td>{{GetBlockAmount(block)}}</td>
+                            <td>
+                              <p *ngFor="let txns of block.body.txns">
+                                {{txns.txid}}
+                              </p>
+                            </td>
+                          </tr>
+                      </tbody>
+                  </table>
+                  <ul *ngIf="blockPager.pages" class="pagination">
+                      <li [ngClass]="{disabled:blockPager.currentPage === 1}">
+                          <a (click)="setBlockPage(1)">First</a>
+                      </li>
+                      <li [ngClass]="{disabled:blockPager.currentPage === 1}">
+                          <a (click)="setBlockPage(blockPager.currentPage - 1)">Previous</a>
+                      </li>
+                      <li *ngFor="let page of blockPager.pages" [ngClass]="{active:blockPager.currentPage === page}">
+                          <a (click)="setBlockPage(page)">{{page}}</a>
+                      </li>
+                      <li [ngClass]="{disabled:blockPager.currentPage === blockPager.totalPages}">
+                          <a (click)="setBlockPage(blockPager.currentPage + 1)">Next</a>
+                      </li>
+                      <li [ngClass]="{disabled:blockPager.currentPage === blockPager.totalPages}">
+                          <a (click)="setBlockPage(blockPager.totalPages)">Last</a>
+                      </li>
+                  </ul>
+                </div>
+                <div *ngIf="blockViewMode=='blockDetail'">
+                    <div>
+                      <a href="#" (click)="showRecentBlock()" class="text-underline"><i class="fa fa-arrow-left"></i> Recent Blocks</a>
+                    </div>
+                    <h4>Block #{{selectedBlock.header.seq}}</h4>
+                    <p>
+                      Height: {{selectedBlock.header.seq}}
+                    </p>
+                    <p>
+                      Timestamp: {{getDateTimeString(selectedBlock.header.timestamp)}}
+                    </p>
+                    <p>
+                      Hash: {{selectedBlock.header.hash}}
+                    </p>
+                    <p>
+                      Parent Hash: {{selectedBlock.header.prev_hash}}
+                    </p>
+                    <p>
+                      Transactions: {{selectedBlock.body.txns.length}}
+                    </p>
+                    <p>
+                      Total Value: {{GetBlockTotalAmount(selectedBlock)}} SKY
+                    </p>
+                    <br/>
+                    <h4>Transactions</h4>
+                    <table class="table" style="width:100%;font-size:11px;">
+                        <tbody *ngFor="let txns of selectedBlock.body.txns">
+                            <tr style="background:white">
+                              <td colspan="2">{{getDateTimeString(selectedBlock.header.timestamp)}}</td>
+                              <td colspan="2"><a class="pull-right text-underline" href="#" (click)="showBlockTransactionDetail(txns)">{{txns.txid}}</a></td>
+                            </tr>
+                            <tr style="background:white">
+                              <td>
+                                <p *ngFor="let item of txns.inputs">{{item}}</p>
+                              </td>
+                              <td><i class="fa fa-2x fa-arrow-right"></i></td>
+                              <td>
+                                <p *ngFor="let item of txns.outputs"><a href="#" (click)="showBlockAddressDetail(item.dst)" class="text-underline">{{item.dst}}</a></p>
+                              </td>
+                              <td>
+                                <div>
+                                  <p *ngFor="let item of txns.outputs" class="text-right">{{item.coins}}</p>
+                                </div>
+                                <p class="text-right">Total SKY: {{GetTransactionAmount2(txns)}}</p>
+                              </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div *ngIf="blockViewMode=='blockTransactionDetail'">
+                  <div>
+                    <a href="#" (click)="showRecentBlock()" class="text-underline"><i class="fa fa-arrow-left"></i> Recent Blocks</a>
+                  </div>
+                  <h4>Transaction: {{selectedBlockTransaction.txid}}</h4>
+                  <p>
+                    Timestamp: {{getDateTimeString(selectedBlock.header.timestamp)}}
+                  </p>
+                  <p>Block #{{selectedBlock.header.seq}}</p>
+                  <p>
+                    Confirmations:
+                  </p>
+                  <p>
+                    Total Value: {{GetTransactionAmount2(selectedBlockTransaction)}} SKY
+                  </p>
+                  <table class="table" style="width:100%;font-size:11px;">
+                      <tbody >
+                          <tr style="background:white">
+                            <td>
+                              <p *ngFor="let item of selectedBlockTransaction.inputs">{{item}}</p>
+                            </td>
+                            <td><i class="fa fa-2x fa-arrow-right"></i></td>
+                            <td>
+                              <p *ngFor="let item of selectedBlockTransaction.outputs"><a href="#" (click)="showBlockAddressDetail(item.dst)" class="text-underline">{{item.dst}}</a></p>
+                            </td>
+                            <td>
+                              <div>
+                                <p *ngFor="let item of selectedBlockTransaction.outputs" class="text-right">{{item.coins}}</p>
+                              </div>
+                              <p class="text-right">Total SKY: {{GetTransactionAmount2(selectedBlockTransaction)}}</p>
+                            </td>
+                          </tr>
+                      </tbody>
+                  </table>
+                </div>
+                <div *ngIf="blockViewMode=='blockAddressDetail'">
+                    <div>
+                      <a href="#" (click)="showRecentBlock()" class="text-underline"><i class="fa fa-arrow-left"></i> Recent Blocks</a>
+                    </div>
+                    <h4>Address: {{selectedBlockAddress}}</h4>
+                    <p>
+                      Number of Transactions:
+                    </p>
+                    <p>
+                      Balance: {{selectedBlockAddressBalance}} SKY
+                    </p>
+                    <p>
+                      Total Received:
+                    </p>
+                    <p>
+                      Total Sent:
+                    </p>
+                    <br/>
+                    <h4>Transactions</h4>
+                    <table class="table" style="width:100%;font-size:11px;">
+                        <tbody *ngFor="let ux of selectedBlackAddressTxList">
+                        <tr style="background:white">
+                            <td colspan="2">{{getDateTimeString(ux.time)}}</td>
+                            <td colspan="2"><span class="pull-right">{{ux.uxid}}</span></td>
+                        </tr>
+                        <tr style="background:white">
+                            <td>
+                                <p><a href="#" (click)="showTransactionDetail(ux.src_tx)" class="text-underline">{{ux.src_tx}}</a></p>
+                            </td>
+                            <td><i class="fa fa-2x fa-arrow-right" style="color:{{ux.type=='in'?'green':'red'}}"></i></td>
+                            <td>
+                                <p><a href="#" (click)="showTransactionDetail(ux.spent_tx)" class="text-underline">{{ux.spent_tx}}</a></p>
+                            </td>
+                            <td>
+                                <div>
+                                    <p>{{ux.coins/1000000|number}} SKY</p>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+>>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
                 </div>
             </div>
             <div tab-content-transclude="tab" [class.active]="displayMode === displayModeEnum.fifth" class="tab-pane ng-scope">
@@ -427,11 +696,19 @@
                                 </tr>
                             </thead>
                             <tbody>
+<<<<<<< HEAD
                                 <tr *ngFor="#item of connections">
                                     <td class="text-center">{{item.id}}</td>
                                     <td class="text-center">{{item.address}}</td>
                                     <td class="text-center">{{item.listen_port}}</td>
                                 </tr>
+=======
+                            <tr *ngFor="let item of connections">
+                                <td class="text-center">{{item.id}}</td>
+                                <td class="text-center">{{item.address}}</td>
+                                <td class="text-center">{{item.listen_port}}</td>
+                            </tr>
+>>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
                             </tbody>
                         </table>
                         <br>
@@ -449,6 +726,7 @@
                                 </tr>
                             </thead>
                             <tbody>
+<<<<<<< HEAD
                                 <tr *ngFor="#item of defaultConnections;#i=index">
                                     <td class="text-center">{{i+1}}</td>
                                     <td class="text-center">{{item}}</td>
@@ -457,6 +735,16 @@
                                         <button class="btn btn-sm btn-danger" (click)="deleteDefaultConnection(item)">Delete</button>
                                     </td>
                                 </tr>
+=======
+                            <tr *ngFor="let item of defaultConnections;let i=index">
+                                <td class="text-center">{{i+1}}</td>
+                                <td class="text-center">{{item}}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-default" (click)="showEditDefaultConnectionDialog(item)">Edit</button>
+                                    <button class="btn btn-sm btn-danger" (click)="deleteDefaultConnection(item)">Delete</button>
+                                </td>
+                            </tr>
+>>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
                             </tbody>
                         </table>
                     </div>
@@ -489,11 +777,19 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+<<<<<<< HEAD
                                     <tr *ngFor="#item of outputs" style="background:white">
                                         <td>{{item.address}}</td>
                                         <td>{{item.coins}}</td>
                                         <td>{{item.hours}}</td>
                                     </tr>
+=======
+                                <tr *ngFor="let item of outputs" style="background:white">
+                                    <td>{{item.address}}</td>
+                                    <td>{{item.coins}}</td>
+                                    <td>{{item.hours}}</td>
+                                </tr>
+>>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
                                 </tbody>
                             </table>
                         </div>
@@ -541,7 +837,9 @@
                 <button type="button" class="close" (click)="hideWalletPopup()" data-dismiss="modal">&times;</button>
                 <h4 class="modal-title">Create New Wallet</h4>
             </div>
+            <form #newWalletForm="ngForm" (ngSubmit)="createNewWallet(walletLabel.value, walletseed.value, addressCount.value)" class="form-horizontal">
             <div class="modal-body">
+<<<<<<< HEAD
                 <form class="form-horizontal">
                     <div class="form-group">
                         <label class="col-sm-3 control-label"><i class="fa fa-question-circle"></i>&nbsp;Label:</label>
@@ -556,6 +854,21 @@
                         </div>
                     </div>
                     <!--<div class="form-group">
+=======
+                  <div class="form-group">
+                      <label class="col-sm-3 control-label"><i class="fa fa-question-circle"></i>&nbsp;Label:</label>
+                      <div class="col-sm-9">
+                          <input maxlength="60" #walletLabel name="walletLabel" placeholder="Name of Wallet" class="form-control" required/>
+                      </div>
+                  </div>
+                  <div class="form-group">
+                      <label class="col-sm-3 control-label"><i class="fa fa-question-circle"></i>&nbsp;Seed:</label>
+                      <div class="col-sm-9">
+                          <textarea rows="4" #walletseed  placeholder="Name of Wallet" cols="46" class="form-control" value="{{randomWords}}"></textarea>
+                      </div>
+                  </div>
+                  <!--<div class="form-group">
+>>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
                       <label class="col-sm-3 control-label">Password:</label>
                       <div class="col-sm-9">
                           <input type="password" #password placeholder="Your Password" class="form-control" required/>
@@ -567,6 +880,7 @@
                           <input type="password" #confirmPassword placeholder="Confirm Password" class="form-control" required/>
                       </div>
                   </div> -->
+<<<<<<< HEAD
                     <div class="form-group">
                         <label class="col-sm-3 control-label"><i class="fa fa-question-circle"></i>&nbsp;Addresses to Create:</label>
                         <div class="col-sm-9">
@@ -574,10 +888,19 @@
                         </div>
                     </div>
                 </form>
+=======
+                  <div class="form-group">
+                      <label class="col-sm-3 control-label"><i class="fa fa-question-circle"></i>&nbsp;Addresses to Create:</label>
+                      <div class="col-sm-9">
+                          <input type="Number" #addressCount class="form-control" value="1" required/>
+                      </div>
+                  </div>
+>>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" (click)="createNewWallet(walletLabel.value, walletseed.value, addressCount.value)">Create</button>
+                <button type="submit" class="btn btn-default" [disabled]="!newWalletForm.form.valid">Create</button>
             </div>
+            </form>
         </div>
     </div>
 </div>
@@ -591,20 +914,20 @@
                 <button type="button" class="close" (click)="hideEditWalletPopup()" data-dismiss="modal">&times;</button>
                 <h4 class="modal-title">Update wallet - {{walletId}}</h4>
             </div>
+            <form class="form-horizontal" (ngSubmit)="updateWallet(walletId, walletname.value)">
             <div class="modal-body">
-                <form class="form-horizontal">
                     <div class="form-group">
                         <label class="col-sm-2 control-label">Name:</label>
                         <div class="col-sm-9">
-                            <input maxlength="60" #walletname placeholder="Enter label for this wallet" class="form-control" required/>
+                            <input maxlength="60" #walletname name="walletname" placeholder="Enter label for this wallet" class="form-control" required/>
                         </div>
                     </div>
-                </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" (click)="updateWallet(walletId, walletname.value)">Ok</button>
+                <button type="submit" class="btn btn-default">Ok</button>
                 <button type="button" class="btn" (click)="hideEditWalletPopup()">Cancel</button>
             </div>
+            </form>
         </div>
     </div>
 </div>
@@ -618,26 +941,26 @@
                 <button type="button" (click)="hideLoadSeedWalletPopup()" class="close">&times;</button>
                 <h4 class="modal-title">Load wallet by seed</h4>
             </div>
+            <form class="form-horizontal" (ngSubmit)="createWalletSeed(walletname.value, walletseed.value)">
             <div class="modal-body">
-                <form class="form-horizontal">
                     <div class="form-group">
                         <label class="col-sm-2 control-label">Name:</label>
                         <div class="col-sm-9">
-                            <input maxlength="60" #walletname placeholder="Enter label for this wallet" class="form-control" required/>
+                            <input maxlength="60" #walletname name="walletname" placeholder="Enter label for this wallet" class="form-control" required/>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-sm-2 control-label">Seed:</label>
                         <div class="col-sm-9">
-                            <textarea rows="4" #walletseed cols="46" class="form-control"></textarea>
+                            <textarea rows="4" #walletseed name="walletseed" cols="46" class="form-control" required></textarea>
                         </div>
                     </div>
-                </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" (click)="createWalletSeed(walletname.value, walletseed.value)">Ok</button>
+                <button type="submit" class="btn btn-default">Ok</button>
                 <button type="button" class="btn" (click)="hideLoadSeedWalletPopup()">Cancel</button>
             </div>
+            </form>
         </div>
     </div>
 </div>

@@ -54,12 +54,11 @@ if [ -e "$LNX64_ELN_PLT" ]; then
     fi
     echo "Zipping $LNX64_ELN_ZIP"
     mv "$LNX64_ELN_PLT" "$LNX64_ELN"
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        tar czf "$LNX64_ELN_ZIP" "$LNX64_ELN"
-    elif [[ "$OSTYPE" == *"linux"* ]]; then
+    if [[ "$OSTYPE" == "linux"* ]]; then
         tar czf "$LNX64_ELN_ZIP" --owner=0 --group=0 "$LNX64_ELN"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        tar czf "$LNX64_ELN_ZIP"  "$LNX64_ELN"
     fi
-
     mv "$LNX64_ELN" "$LNX64_ELN_PLT"
     FINALS+=("$LNX64_ELN_ZIP")
 fi

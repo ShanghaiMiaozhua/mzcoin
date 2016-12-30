@@ -47,12 +47,11 @@ if [ -e "$LNX64_STL" ]; then
         rm "$LNX64_STL_ZIP"
     fi
     echo "Zipping $LNX64_STL_ZIP"
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        tar czf "$LNX64_STL_ZIP" "$LNX64_STL"
-    elif [[ "$OSTYPE" == *"linux"* ]]; then
+    if [[ "$OSTYPE" == "linux"* ]]; then
         tar czf "$LNX64_STL_ZIP" --owner=0 --group=0 "$LNX64_STL"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        tar czf "$LNX64_STL_ZIP"  "$LNX64_STL"
     fi
-
     FINALS+=("$LNX64_STL_ZIP")
 fi
 

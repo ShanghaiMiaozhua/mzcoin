@@ -109,6 +109,7 @@ func (self *Node) Close() error {
 	}
 	close(self.transportsMessagesReceived)
 	self.closeGroup.Wait()
+	self.closeTransports()
 	return nil
 }
 
@@ -147,6 +148,12 @@ func (self *Node) GetTransportToPeer(peerKey cipher.PubKey) transport.ITransport
 		}
 	}
 	return nil
+}
+
+func (self *Node) closeTransports() {
+	for transportToPeer := range self.transports {
+		transportToPeer.Close()
+	}
 }
 
 func (self *Node) safelyGetTransportToPeer(peerKey cipher.PubKey) transport.ITransport {
