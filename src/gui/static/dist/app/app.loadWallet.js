@@ -1,4 +1,4 @@
-System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/operator/map', 'rxjs/add/operator/catch', './ng2-qrcode'], function(exports_1, context_1) {
+System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/operator/map', 'rxjs/add/operator/catch', './ng2-qrcode', './components/seed.component'], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -10,7 +10,7 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var core_1, router_1, http_1, http_2, ng2_qrcode_1;
+    var core_1, router_1, http_1, http_2, ng2_qrcode_1, seed_component_1;
     var PagerService, LoadWalletComponent, DisplayModeEnum;
     return {
         setters:[
@@ -28,6 +28,9 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
             function (_2) {},
             function (ng2_qrcode_1_1) {
                 ng2_qrcode_1 = ng2_qrcode_1_1;
+            },
+            function (seed_component_1_1) {
+                seed_component_1 = seed_component_1_1;
             }],
         execute: function() {
             PagerService = (function () {
@@ -104,6 +107,7 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                     this.loadConnections();
                     this.loadDefaultConnections();
                     this.loadBlockChain();
+                    this.loadNumberOfBlocks();
                     this.loadProgress();
                     this.loadOutputs();
                     this.loadTransactions();
@@ -117,6 +121,7 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                     setInterval(function () {
                         _this.loadConnections();
                         _this.loadBlockChain();
+                        _this.loadNumberOfBlocks();
                         //console.log("Refreshing connections");
                     }, 15000);
                     //Enable Send tab "textbox" and "Ready" button by default
@@ -161,6 +166,15 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                     }
                     this.readyDisable = true;
                     this.sendDisable = false;
+                };
+                LoadWalletComponent.prototype.loadNumberOfBlocks = function () {
+                    var _this = this;
+                    this.numberOfBlocks = 0;
+                    this.http.get('/blockchain/metadata')
+                        .map(function (res) { return res.json(); })
+                        .subscribe(function (data) {
+                        _this.numberOfBlocks = data.head.seq;
+                    });
                 };
                 //Load wallet function
                 LoadWalletComponent.prototype.loadWallet = function () {
@@ -427,7 +441,6 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                 //Show wallet function for view New wallet popup
                 LoadWalletComponent.prototype.showNewWalletDialog = function () {
                     this.NewWalletIsVisible = true;
-                    this.randomWords = this.getRandomWords();
                 };
                 //Hide wallet function for hide New wallet popup
                 LoadWalletComponent.prototype.hideWalletPopup = function () {
@@ -739,26 +752,6 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                 LoadWalletComponent.prototype.searchBlockHistory = function (searchKey) {
                     console.log(searchKey);
                 };
-                LoadWalletComponent.prototype.getRandomWords = function () {
-                    var ret = [];
-                    for (var i = 0; i < 11; i++) {
-                        var length = Math.round(Math.random() * 10);
-                        length = Math.max(length, 3);
-                        ret.push(this.createRandomWord(length));
-                    }
-                    return ret.join(" ");
-                };
-                LoadWalletComponent.prototype.createRandomWord = function (length) {
-                    var consonants = 'bcdfghjklmnpqrstvwxyz', vowels = 'aeiou', rand = function (limit) {
-                        return Math.floor(Math.random() * limit);
-                    }, i, word = '', consonants2 = consonants.split(''), vowels2 = vowels.split('');
-                    for (i = 0; i < length / 2; i++) {
-                        var randConsonant = consonants2[rand(consonants.length)], randVowel = vowels2[rand(vowels.length)];
-                        word += (i === 0) ? randConsonant.toUpperCase() : randConsonant;
-                        word += i * 2 < length - 1 ? randVowel : '';
-                    }
-                    return word;
-                };
                 LoadWalletComponent.prototype.onSelectWallet = function (val) {
                     console.log("onSelectWallet", val);
                     //this.selectedWallet = val;
@@ -865,7 +858,7 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                 LoadWalletComponent = __decorate([
                     core_1.Component({
                         selector: 'load-wallet',
-                        directives: [router_1.ROUTER_DIRECTIVES, ng2_qrcode_1.QRCodeComponent],
+                        directives: [router_1.ROUTER_DIRECTIVES, ng2_qrcode_1.QRCodeComponent, seed_component_1.SeedComponent],
                         providers: [PagerService],
                         templateUrl: 'app/templates/wallet.html'
                     }), 
