@@ -564,7 +564,6 @@ func Run(c *Config) {
 			}()
 		}
 	}
-
 	/*
 		time.Sleep(5)
 		tx := InitTransaction()
