@@ -5,14 +5,17 @@ global.eval = function() { throw new Error('bad!!'); }
 
 const path = require('path');
 
-const electron = require('electron');
+const { app, BrowserWindow, dialog, Menu } = require('electron');
+
+const childProcess = require('child_process');
+
+const cwd = require('process').cwd();
 
 // This adds refresh and devtools console keybindings
 // Page can refresh with cmd+r, ctrl+r, F5
 // Devtools can be toggled with cmd+alt+i, ctrl+shift+i, F12
 require('electron-debug')({ enabled: true, showDevTools: false });
 
-const { app } = electron;
 
 const defaultURL = 'http://127.0.0.1:7420/';
 let currentURL;
@@ -25,14 +28,6 @@ app.commandLine.appendSwitch('--no-proxy-server');
 
 app.setAsDefaultProtocolClient('mzcoin');
 
-// Module to create native browser window.
-const { BrowserWindow } = electron;
-
-const { dialog } = electron;
-
-const childProcess = require('child_process');
-
-const cwd = require('process').cwd();
 
 // console.log('working directory: ' + cwd);
 
@@ -186,6 +181,29 @@ function createWindow(url) {
         // when you should delete the corresponding element.
         win = null;
     });
+
+    // create application's main menu
+    var template = [{
+        label: "Mzcoin",
+        submenu: [
+            { label: "About Mzcoin", selector: "orderFrontStandardAboutPanel:" },
+            { type: "separator" },
+            { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); } }
+        ]
+    }, {
+        label: "Edit",
+        submenu: [
+            { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+            { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+            { type: "separator" },
+            { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+            { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+            { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+            { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+        ]
+    }];
+
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
 // Enforce single instance
