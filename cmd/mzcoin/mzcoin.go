@@ -21,6 +21,7 @@ import (
 	"github.com/skycoin/skycoin/src/gui"
 	"github.com/skycoin/skycoin/src/util"
 	"github.com/skycoin/skycoin/src/visor/blockdb"
+	"github.com/skycoin/skycoin/src/wallet"
 )
 
 //"github.com/wudaofan/mzcoin/src/cli"
@@ -501,7 +502,7 @@ func Run(c *Config) {
 	// Watch for SIGUSR1
 	go catchDebug()
 
-	gui.InitWalletRPC(c.WalletDirectory)
+	gui.InitWalletRPC(c.WalletDirectory, wallet.OptCoin("mzc"))
 
 	dconf := configureDaemon(c)
 	d := daemon.NewDaemon(dconf)
