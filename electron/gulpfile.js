@@ -22,7 +22,7 @@ gulp.task('electron', () => {
             packageJson: packageJson,
             release: './.electron_output',
             cache: './.electron_cache',
-            version: 'v1.2.2', // electron version
+            version: 'v1.4.13', // electron version
             packaging: false, // zip/tar results; we do this manually since
             // we need to copy our skycoin binaries in
             // due to liimitations of electron-gulp
