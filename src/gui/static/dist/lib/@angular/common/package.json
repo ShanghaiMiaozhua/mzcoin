@@ -2,7 +2,11 @@
   "_args": [
     [
       "@angular/common@2.0.0-rc.1",
+<<<<<<< HEAD
       "/Users/heaven/src/github.com/ShanghaiKuaibei/mzcoin/src/gui/static"
+=======
+      "/Users/napandey/coding/skycoin/src/gui/static"
+>>>>>>> upstream/master
     ]
   ],
   "_from": "@angular/common@2.0.0-rc.1",
@@ -36,7 +40,11 @@
   "_shasum": "7f3f7622eb9af94da3f5ebff305de662a5d5942e",
   "_shrinkwrap": null,
   "_spec": "@angular/common@2.0.0-rc.1",
+<<<<<<< HEAD
   "_where": "/Users/heaven/src/github.com/ShanghaiKuaibei/mzcoin/src/gui/static",
+=======
+  "_where": "/Users/napandey/coding/skycoin/src/gui/static",
+>>>>>>> upstream/master
   "author": {
     "name": "angular"
   },

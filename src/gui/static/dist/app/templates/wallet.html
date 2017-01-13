@@ -49,6 +49,7 @@
             </li>
         </ul>
         <div class="tab-content">
+<<<<<<< HEAD
             <div [class.active]="displayMode === displayModeEnum.first" class="tab-pane ng-scope active">
                 <div style="padding:0 10px 20px 10px;display:inline-block;width:100%">
                     <div class="wallet-buttons">
@@ -91,6 +92,50 @@
                     </table>
                     <!-- historyPager -->
                 </div>
+=======
+            <div [class.active]="displayMode === displayModeEnum.first"  class="tab-pane ng-scope active">
+              <div style="padding:0 10px 20px 10px;display:inline-block;width:100%">
+                <div class="wallet-buttons">
+                    <button class="btn btn-default" type="button" (click)="showNewWalletDialog()"><i class="fa fa-plus-square"></i> New Wallet</button>
+                    <button class="btn btn-default" type="button" (click)="openLoadWallet()"><i class="fa fa-circle-o"></i> Load Wallet From Seed</button>
+                </div>
+                  <table id="overview-wallet" class="outline" >
+                      <thead>
+                      <tr class="dark-row">
+                          <td style="width:30px;"></td>
+                          <td>Label</td>
+                          <td>Address</td>
+                          <td class="text-center" colspan="1">Balance</td>
+                          <td class="text-center" colspan="2">Addresses</td>
+                      </tr>
+                      </thead>
+                      <tbody *ngFor="let wallet of wallets">
+                      <tr>
+                          <td>
+                              <a href="#" (click)="toggleShowChild(wallet)" *ngIf="!wallet.showChild"><i class="fa fa-angle-right"></i></a>
+                              <a href="#" (click)="toggleShowChild(wallet)" *ngIf="wallet.showChild"><i class="fa fa-angle-down"></i></a>
+                          </td>
+                          <td><skycoin-edit [wallets]="wallets" [walletId]="wallet.meta.filename" [text]="wallet.meta.label?wallet.meta.label:'undefined'" (onWalletChanged)="loadWallet()"></skycoin-edit></td>
+                          <td></td>
+
+                          <td class="text-center">{{wallet.entries[0].balance}} SKY</td>
+                          <td class="text-right">{{wallet.entries.length}}&nbsp;</td>
+                          <td class="text-right">
+                              <a href="#" (click)="addNewAddress(wallet)"><i class="fa fa-plus add-address"></i></a></td>
+                      </tr>
+                      <tr *ngFor="let entry of wallet.entries; let idx=index" [hidden]="!wallet.showChild" style="background-color: #f4f5f6">
+                          <td></td>
+                          <td class="text-center">  {{idx+1}}</td>
+                          <td><a href="#" (click)="showQR(wallet)"><i class="fa " aria-hidden="true"></i>&nbsp;<i class="fa fa-qrcode"></i></a>&nbsp;{{entry.address}}</td>
+                          <td class="text-right" >{{entry.balance?entry.balance:0}} SKY</td>
+                          <td></td>
+                          <td></td>
+                      </tr>
+                      </tbody>
+                  </table>
+                  <!-- historyPager -->
+              </div>
+>>>>>>> upstream/master
             </div>
 
             <div tab-content-transclude="tab" [class.active]="displayMode === displayModeEnum.second" class="tab-pane ng-scope">
@@ -542,6 +587,7 @@
                 <h4 class="modal-title">Create New Wallet</h4>
             </div>
             <form #newWalletForm="ngForm" (ngSubmit)="createNewWallet(walletLabel.value, mnemonicseed.value, addressCount.value)" class="form-horizontal">
+<<<<<<< HEAD
                 <div class="modal-body">
                     <div class="form-group">
                         <label class="col-sm-3 control-label"><i class="fa fa-question-circle"></i>&nbsp;Label:</label>
@@ -556,6 +602,22 @@
                         </div>
                     </div>
                     <!--<div class="form-group">
+=======
+            <div class="modal-body">
+                  <div class="form-group">
+                      <label class="col-sm-3 control-label"><i class="fa fa-question-circle"></i>&nbsp;Label:</label>
+                      <div class="col-sm-9">
+                          <input maxlength="60" #walletLabel name="walletLabel" placeholder="Name of Wallet" class="form-control" required/>
+                      </div>
+                  </div>
+                  <div class="form-group">
+                      <label class="col-sm-3 control-label"><i class="fa fa-question-circle"></i>&nbsp;Seed:</label>
+                      <div class="col-sm-9">
+                          <seed-mnemonic #mnemonicseed></seed-mnemonic>
+                      </div>
+                  </div>
+                  <!--<div class="form-group">
+>>>>>>> upstream/master
                       <label class="col-sm-3 control-label">Password:</label>
                       <div class="col-sm-9">
                           <input type="password" #password placeholder="Your Password" class="form-control" required/>
@@ -582,6 +644,7 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- Popup for edit wallet -->
 <!--<div *ngIf="EditWalletIsVisible" ng-style="{'z-index': 1040 + (index &amp;&amp; 1 || 0) + index*10}" ng-class="{in: animate}" class="modal-backdrop fade  in" modal-backdrop="" style="z-index: 1040;"></div>-->
 <div *ngIf="EditWalletIsVisible" class="modal fade show in" id="myModal" role="dialog">
@@ -609,6 +672,8 @@
     </div>
 </div>
 
+=======
+>>>>>>> upstream/master
 <!-- Popup for load wallet from seed -->
 <!--<div *ngIf="loadSeedIsVisible" ng-style="{'z-index': 1040 + (index &amp;&amp; 1 || 0) + index*10}" ng-class="{in: animate}" class="modal-backdrop fade  in" modal-backdrop="" style="z-index: 1040;"></div>-->
 <div *ngIf="loadSeedIsVisible" class="modal fade show in" id="myModal" role="dialog">

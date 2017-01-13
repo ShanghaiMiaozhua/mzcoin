@@ -2,7 +2,11 @@
   "_args": [
     [
       "@angular/platform-browser@2.0.0-rc.1",
+<<<<<<< HEAD
       "/Users/heaven/src/github.com/ShanghaiKuaibei/mzcoin/src/gui/static"
+=======
+      "/Users/napandey/coding/skycoin/src/gui/static"
+>>>>>>> upstream/master
     ]
   ],
   "_from": "@angular/platform-browser@2.0.0-rc.1",
@@ -36,7 +40,11 @@
   "_shasum": "df97549f72f042d1c1180ebd451eb676416e40f8",
   "_shrinkwrap": null,
   "_spec": "@angular/platform-browser@2.0.0-rc.1",
+<<<<<<< HEAD
   "_where": "/Users/heaven/src/github.com/ShanghaiKuaibei/mzcoin/src/gui/static",
+=======
+  "_where": "/Users/napandey/coding/skycoin/src/gui/static",
+>>>>>>> upstream/master
   "author": {
     "name": "angular"
   },

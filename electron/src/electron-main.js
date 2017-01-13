@@ -1,11 +1,10 @@
 'use strict'
 
-global.eval = function() { throw new Error('bad!!'); }
-    // var log = require('electron-log');
+const { app, Menu, BrowserWindow, dialog } = require('electron');
+
+var log = require('electron-log');
 
 const path = require('path');
-
-const { app, BrowserWindow, dialog, Menu } = require('electron');
 
 const childProcess = require('child_process');
 
@@ -17,6 +16,8 @@ const cwd = require('process').cwd();
 require('electron-debug')({ enabled: true, showDevTools: false });
 
 
+global.eval = function() { throw new Error('bad!!'); }
+
 const defaultURL = 'http://127.0.0.1:7420/';
 let currentURL;
 
@@ -24,12 +25,7 @@ let currentURL;
 app.commandLine.appendSwitch('host-rules', 'MAP * 127.0.0.1');
 app.commandLine.appendSwitch('ssl-version-fallback-min', 'tls1.2');
 app.commandLine.appendSwitch('--no-proxy-server');
-// app.commandLine.appendSwitch('cipher-suite-blacklist', '');
-
 app.setAsDefaultProtocolClient('mzcoin');
-
-
-// console.log('working directory: ' + cwd);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -37,32 +33,8 @@ let win;
 
 var skycoin = null;
 
-// function logExec(cmd, args) {
-//     console.log('exec: ' + cmd);
-//     var ps = childProcess.exec(cmd, args, (error) => {
-//         if (error) {
-//             console.log(error);
-//             throw error
-//         }
-//     });
-//     ps.stdout.on('data', (data) => {
-//         console.log(data.toString());
-//     });
-//     ps.stderr.on('data', (data) => {
-//         console.log(data.toString());
-//     });
-//     return ps;
-// }
-
-// logExec('ls');
-
 function startSkycoin() {
     console.log('Starting mzcoin from electron');
-
-    // console.log('=====\n\n');
-    // // console.log(app.getPath('app'));
-    // console.log(app.getPath('skycoin'));
-    // console.log('\n\n=====');
 
     if (skycoin) {
         console.log('Mzcoin already running');
@@ -121,14 +93,6 @@ function startSkycoin() {
         if (i === -1) {
             return
         }
-        // var j = data.indexOf('\n', i);
-
-        // // dialog.showErrorBox('index of newline: ', j);
-        // if (j === -1) {
-        //     throw new Error('web interface url log line incomplete');
-        // }
-        // var url = data.slice(i + marker.length, j);
-        // currentURL = url.toString();
         currentURL = defaultURL
         app.emit('skycoin-ready', { url: currentURL });
     });

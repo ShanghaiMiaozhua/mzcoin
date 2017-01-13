@@ -2,7 +2,11 @@
   "_args": [
     [
       "@angular/router-deprecated@2.0.0-rc.1",
+<<<<<<< HEAD
       "/Users/heaven/src/github.com/ShanghaiKuaibei/mzcoin/src/gui/static"
+=======
+      "/Users/napandey/coding/skycoin/src/gui/static"
+>>>>>>> upstream/master
     ]
   ],
   "_from": "@angular/router-deprecated@2.0.0-rc.1",
@@ -36,7 +40,11 @@
   "_shasum": "d87e0ae97d62a9ecc63279ead33fbbd1476ea572",
   "_shrinkwrap": null,
   "_spec": "@angular/router-deprecated@2.0.0-rc.1",
+<<<<<<< HEAD
   "_where": "/Users/heaven/src/github.com/ShanghaiKuaibei/mzcoin/src/gui/static",
+=======
+  "_where": "/Users/napandey/coding/skycoin/src/gui/static",
+>>>>>>> upstream/master
   "author": {
     "name": "angular"
   },

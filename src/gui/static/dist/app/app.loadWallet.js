@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/operator/map', 'rxjs/add/operator/catch', './ng2-qrcode', './components/seed.component'], function(exports_1, context_1) {
+=======
+System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/operator/map', 'rxjs/add/operator/catch', './ng2-qrcode', './components/skycoin.edit.component', './components/seed.component'], function(exports_1, context_1) {
+>>>>>>> upstream/master
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -10,7 +14,11 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
+<<<<<<< HEAD
     var core_1, router_1, http_1, http_2, ng2_qrcode_1, seed_component_1;
+=======
+    var core_1, router_1, http_1, http_2, ng2_qrcode_1, skycoin_edit_component_1, seed_component_1;
+>>>>>>> upstream/master
     var PagerService, LoadWalletComponent, DisplayModeEnum;
     return {
         setters:[
@@ -29,6 +37,12 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
             function (ng2_qrcode_1_1) {
                 ng2_qrcode_1 = ng2_qrcode_1_1;
             },
+<<<<<<< HEAD
+=======
+            function (skycoin_edit_component_1_1) {
+                skycoin_edit_component_1 = skycoin_edit_component_1_1;
+            },
+>>>>>>> upstream/master
             function (seed_component_1_1) {
                 seed_component_1 = seed_component_1_1;
             }],
@@ -539,11 +553,6 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                         console.log(err);
                     }, function () { });
                 };
-                //Edit existing wallet function
-                LoadWalletComponent.prototype.editWallet = function (wallet) {
-                    this.EditWalletIsVisible = true;
-                    this.walletId = wallet.meta.filename;
-                };
                 LoadWalletComponent.prototype.addNewAddress = function (wallet) {
                     var _this = this;
                     //Set http headers
@@ -561,39 +570,6 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                     }, function (err) {
                         console.log(err);
                     }, function () { });
-                };
-                //Hide edit wallet function
-                LoadWalletComponent.prototype.hideEditWalletPopup = function () {
-                    this.EditWalletIsVisible = false;
-                };
-                //Update wallet function for update wallet label
-                LoadWalletComponent.prototype.updateWallet = function (walletid, walletName) {
-                    var _this = this;
-                    console.log("update wallet", walletid, walletName);
-                    //check if label is duplicated
-                    var old = _.find(this.wallets, function (o) {
-                        return (o.meta.label == walletName);
-                    });
-                    if (old) {
-                        toastr.error("This wallet label is used already");
-                        return;
-                    }
-                    //Set http headers
-                    var headers = new http_2.Headers();
-                    headers.append('Content-Type', 'application/x-www-form-urlencoded');
-                    var stringConvert = 'label=' + walletName + '&id=' + walletid;
-                    //Post method executed
-                    this.http.post('/wallet/update', stringConvert, { headers: headers })
-                        .map(function (res) { return res.json(); })
-                        .subscribe(function (response) {
-                        //Hide new wallet popup
-                        _this.EditWalletIsVisible = false;
-                        toastr.info("Wallet updated successfully");
-                        //Load wallet for refresh list
-                        _this.loadWallet();
-                    }, function (err) { return console.log("Error on update wallet: " + JSON.stringify(err)); }, function () {
-                        //console.log('Update wallet done')
-                    });
                 };
                 //Load wallet seed function
                 LoadWalletComponent.prototype.openLoadWallet = function (walletName, seed) {
@@ -858,7 +834,11 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                 LoadWalletComponent = __decorate([
                     core_1.Component({
                         selector: 'load-wallet',
+<<<<<<< HEAD
                         directives: [router_1.ROUTER_DIRECTIVES, ng2_qrcode_1.QRCodeComponent, seed_component_1.SeedComponent],
+=======
+                        directives: [router_1.ROUTER_DIRECTIVES, ng2_qrcode_1.QRCodeComponent, seed_component_1.SeedComponent, skycoin_edit_component_1.SkyCoinEditComponent],
+>>>>>>> upstream/master
                         providers: [PagerService],
                         templateUrl: 'app/templates/wallet.html'
                     }), 

@@ -71,10 +71,12 @@
                                     <a href="#" (click)="toggleShowChild(wallet)" *ngIf="!wallet.showChild"><i class="fa fa-angle-right"></i></a>
                                     <a href="#" (click)="toggleShowChild(wallet)" *ngIf="wallet.showChild"><i class="fa fa-angle-down"></i></a>
                                 </td>
-                                <td><a href="#" (click)="editWallet(wallet)"><i class="fa fa-edit"></i></a>&nbsp;{{wallet.meta.label?wallet.meta.label:'Undefined'}}</td>
+                                <td>
+                                    <skycoin-edit [wallets]="wallets" [walletId]="wallet.meta.filename" [text]="wallet.meta.label?wallet.meta.label:'undefined'" (onWalletChanged)="loadWallet()"></skycoin-edit>
+                                </td>
                                 <td></td>
 
-                                <td class="text-center">{{wallet.entries[0].balance}} MZC</td>
+                                <td class="text-center">{{wallet.balance}} MZC</td>
                                 <td class="text-right">{{wallet.entries.length}}&nbsp;</td>
                                 <td class="text-right">
                                     <a href="#" (click)="addNewAddress(wallet)"><i class="fa fa-plus add-address"></i></a></td>
@@ -153,12 +155,12 @@
                                     <td>Transaction ID</td>
                                 </tr>
                                 <tr *ngFor="let transaction of pendingTable">
-                                    <td>{{getDateTimeString(transaction.txn.time)}}</td>
-                                    <td>{{transaction.balance.confirmed.coins?'Completed':'Pending'}}</td>
-                                    <td>{{transaction.txn.address}}</td>
+                                    <td>{{getDateTimeString(transaction.time)}}</td>
+                                    <td>{{transaction.status}}</td>
+                                    <td>{{transaction.address}}</td>
                                     <td></td>
-                                    <td>{{transaction.txn.amount}}</td>
-                                    <td>{{transaction.txn.txid}}</td>
+                                    <td>{{transaction.amount}}</td>
+                                    <td>{{transaction.txId}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -370,47 +372,89 @@
                             </tbody>
                         </table>
                     </div>
-                    <div *ngIf="blockViewMode=='blockAddressDetail'">
-                        <div>
-                            <a href="#" (click)="showRecentBlock()" class="text-underline"><i class="fa fa-arrow-left"></i> Recent Blocks</a>
-                        </div>
-                        <h4>Address: {{selectedBlockAddress}}</h4>
-                        <p>
-                            Number of Transactions:
-                        </p>
-                        <p>
-                            Balance: {{selectedBlockAddressBalance}} MZC
-                        </p>
-                        <p>
-                            Total Received:
-                        </p>
-                        <p>
-                            Total Sent:
-                        </p>
-                        <br/>
-                        <h4>Transactions</h4>
-                        <table class="table" style="width:100%;font-size:11px;">
-                            <tbody *ngFor="let ux of selectedBlackAddressTxList">
-                                <tr style="background:white">
-                                    <td colspan="2">{{getDateTimeString(ux.time)}}</td>
-                                    <td colspan="2"><span class="pull-right">{{ux.uxid}}</span></td>
-                                </tr>
-                                <tr style="background:white">
-                                    <td>
-                                        <p><a href="#" (click)="showTransactionDetail(ux.src_tx)" class="text-underline">{{ux.src_tx}}</a></p>
-                                    </td>
-                                    <td><i class="fa fa-2x fa-arrow-right" style="color:{{ux.type=='in'?'green':'red'}}"></i></td>
-                                    <td>
-                                        <p><a href="#" (click)="showTransactionDetail(ux.spent_tx)" class="text-underline">{{ux.spent_tx}}</a></p>
-                                    </td>
-                                    <td>
-                                        <div>
-                                            <p>{{ux.coins/1000000|number}} MZC</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <h4>Block #{{selectedBlock.header.seq}}</h4>
+                    <p>
+                        Height: {{selectedBlock.header.seq}}
+                    </p>
+                    <p>
+                        Timestamp: {{getDateTimeString(selectedBlock.header.timestamp)}}
+                    </p>
+                    <p>
+                        Hash: {{selectedBlock.header.block_hash}}
+                    </p>
+                    <p>
+                        Parent Hash: {{selectedBlock.header.previous_block_hash}}
+                    </p>
+                    <p>
+                        Transactions: {{selectedBlock.body.txns.length}}
+                    </p>
+                    <p>
+                        Total Value: {{GetBlockTotalAmount(selectedBlock)}} MZC
+                    </p>
+                    <br/>
+                    <h4>Transactions</h4>
+                    <table class="table" style="width:100%;font-size:11px;">
+                        <tbody *ngFor="let txns of selectedBlock.body.txns">
+                            <tr style="background:white">
+                                <td colspan="2">{{getDateTimeString(selectedBlock.header.timestamp)}}</td>
+                                <td colspan="2"><a class="pull-right text-underline" href="#" (click)="showBlockTransactionDetail(txns)">{{txns.txid}}</a></td>
+                            </tr>
+                            <tr style="background:white">
+                                <td>
+                                    <p *ngFor="let item of txns.inputs">{{item}}</p>
+                                </td>
+                                <td><i class="fa fa-2x fa-arrow-right"></i></td>
+                                <td>
+                                    <p *ngFor="let item of txns.outputs"><a href="#" (click)="showBlockAddressDetail(item.dst)" class="text-underline">{{item.dst}}</a></p>
+                                </td>
+                                <td>
+                                    <div>
+                                        <p *ngFor="let item of txns.outputs" class="text-right">{{item.coins}}</p>
+                                    </div>
+                                    <p class="text-right">Total MZC: {{GetTransactionAmount2(txns)}}</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div *ngIf="blockViewMode=='blockTransactionDetail'">
+                    <div>
+                        <a href="#" (click)="showRecentBlock()" class="text-underline"><i class="fa fa-arrow-left"></i> Recent Blocks</a>
+                    </div>
+                    <h4>Transaction: {{selectedBlockTransaction.txid}}</h4>
+                    <p>
+                        Timestamp: {{getDateTimeString(selectedBlock.header.timestamp)}}
+                    </p>
+                    <p>Block #{{selectedBlock.header.seq}}</p>
+                    <p>
+                        Confirmations:
+                    </p>
+                    <p>
+                        Total Value: {{GetTransactionAmount2(selectedBlockTransaction)}} MZC
+                    </p>
+                    <table class="table" style="width:100%;font-size:11px;">
+                        <tbody>
+                            <tr style="background:white">
+                                <td>
+                                    <p *ngFor="let item of selectedBlockTransaction.inputs">{{item}}</p>
+                                </td>
+                                <td><i class="fa fa-2x fa-arrow-right"></i></td>
+                                <td>
+                                    <p *ngFor="let item of selectedBlockTransaction.outputs"><a href="#" (click)="showBlockAddressDetail(item.dst)" class="text-underline">{{item.dst}}</a></p>
+                                </td>
+                                <td>
+                                    <div>
+                                        <p *ngFor="let item of selectedBlockTransaction.outputs" class="text-right">{{item.coins}}</p>
+                                    </div>
+                                    <p class="text-right">Total MZC: {{GetTransactionAmount2(selectedBlockTransaction)}}</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div *ngIf="blockViewMode=='blockAddressDetail'">
+                    <div>
+                        <a href="#" (click)="showRecentBlock()" class="text-underline"><i class="fa fa-arrow-left"></i> Recent Blocks</a>
                     </div>
                 </div>
             </div>
@@ -479,24 +523,7 @@
                     </div>
                     <div *ngIf="selectedMenu=='Outputs'" style="padding-top:10px">
                         <p>Outputs</p>
-                        <div class="main-content ng-scope">
-                            <table class="table table-bordered" style="width:100%">
-                                <thead>
-                                    <tr class="dark-row">
-                                        <th>Address</th>
-                                        <th>Coins</th>
-                                        <th>Hours</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr *ngFor="let item of outputs" style="background:white">
-                                        <td>{{item.address}}</td>
-                                        <td>{{item.coins}}</td>
-                                        <td>{{item.hours}}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <skycoin-outputs [wallets]="wallets"></skycoin-outputs>
                     </div>
                 </div>
             </div>
@@ -576,33 +603,6 @@
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-default" [disabled]="!newWalletForm.form.valid">Create</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Popup for edit wallet -->
-<!--<div *ngIf="EditWalletIsVisible" ng-style="{'z-index': 1040 + (index &amp;&amp; 1 || 0) + index*10}" ng-class="{in: animate}" class="modal-backdrop fade  in" modal-backdrop="" style="z-index: 1040;"></div>-->
-<div *ngIf="EditWalletIsVisible" class="modal fade show in" id="myModal" role="dialog">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" (click)="hideEditWalletPopup()" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">Update wallet - {{walletId}}</h4>
-            </div>
-            <form class="form-horizontal" (ngSubmit)="updateWallet(walletId, walletname.value)">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label">Name:</label>
-                        <div class="col-sm-9">
-                            <input maxlength="60" #walletname name="walletname" placeholder="Enter label for this wallet" class="form-control" required/>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-default">Ok</button>
-                    <button type="button" class="btn" (click)="hideEditWalletPopup()">Cancel</button>
                 </div>
             </form>
         </div>

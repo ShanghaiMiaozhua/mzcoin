@@ -1,55 +1,52 @@
 package node
 
 import (
-	"github.com/satori/go.uuid"
+	"errors"
+	"fmt"
 
 	"github.com/skycoin/skycoin/src/mesh2/messages"
 )
 
 type ControlChannel struct {
-	Id              uuid.UUID
-	IncomingChannel chan []byte
+	Id messages.ChannelId
 }
 
 func NewControlChannel() *ControlChannel {
 	c := ControlChannel{
-		Id:              uuid.NewV4(),
-		IncomingChannel: make(chan []byte),
+		Id: messages.RandChannelId(),
 	}
 	return &c
 }
 
-func (c *ControlChannel) HandleMessage(handledNode *Node, msg []byte) error {
-
+func (c *ControlChannel) HandleMessage(handledNode *Node, msg []byte) (interface{}, error) {
 	switch messages.GetMessageType(msg) {
-
-	case messages.MsgCreateChannelControlMessage:
-		controlChannel := NewControlChannel()
-		handledNode.AddControlChannel(controlChannel)
-		return nil
-
+	/*
+		case messages.MsgCreateChannelControlMessage:
+			channelID := handledNode.AddControlChannel()
+			return channelID, nil
+	*/
 	case messages.MsgAddRouteControlMessage:
+		fmt.Println("adding route")
 		var m1 messages.AddRouteControlMessage
-		messages.Deserialize(msg, m1)
-		routeId := m1.RouteId
-		nodeToAdd := m1.NodeId
-		return handledNode.addRoute(nodeToAdd, routeId)
-
-	case messages.MsgExtendRouteControlMessage:
-		//do something
-		//var m1 messages.ExtendRouteControlMessage
-		//messages.Deserialize(msg, m1)
-		//routeId := m1.RouteId
-		//nodeToExtend := m1.NodeId
-		//return handledNode.extendRoute(nodeToAdd, routeId)
-		return nil
+		err := messages.Deserialize(msg, &m1)
+		if err != nil {
+			panic(err)
+		}
+		routeRule := RouteRule{
+			m1.IncomingTransportId,
+			m1.OutgoingTransportId,
+			m1.IncomingRouteId,
+			m1.OutgoingRouteId,
+		}
+		return nil, handledNode.addRoute(&routeRule)
 
 	case messages.MsgRemoveRouteControlMessage:
+		fmt.Println("removing route")
 		var m1 messages.RemoveRouteControlMessage
-		messages.Deserialize(msg, m1)
+		messages.Deserialize(msg, &m1)
 		routeId := m1.RouteId
-		return handledNode.removeRoute(routeId)
+		return nil, handledNode.removeRoute(routeId)
 	}
 
-	return nil
+	return nil, errors.New("Unknown message type")
 }

@@ -4,28 +4,28 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-
-	"github.com/skycoin/skycoin/src/cipher"
 )
 
 const (
-	MsgInRouteMessage              = iota // Transport -> Node
-	MsgOutRouteMessage                    // Node -> Transport
-	MsgTransportDatagramTransfer          //Transport -> Transport, simulating sending packet over network
-	MsgTransportDatagramACK               //Transport -> Transport, simulating ACK for packet
-	MsgCreateChannelControlMessage        //Transport -> Transport, simulating ACK for packet
-	MsgAddRouteControlMessage             //Transport -> Transport, simulating ACK for packet
-	MsgExtendRouteControlMessage          //Transport -> Transport, simulating ACK for packet
-	MsgRemoveRouteControlMessage          //Transport -> Transport, simulating ACK for packet
+	MsgInRouteMessage            = iota // Transport -> Node
+	MsgOutRouteMessage                  // Node -> Transport
+	MsgTransportDatagramTransfer        //Transport -> Transport, simulating sending packet over network
+	MsgTransportDatagramACK             //Transport -> Transport, simulating ACK for packet
+	MsgInControlMessage                 //Transport -> Node, control message
+	MsgOutControlMessage                //Node -> Transport, control message
+	//	MsgCreateChannelControlMessage        //Node -> Control channel, create new control channel
+	MsgCloseChannelControlMessage //Node -> Control channel, close control channel
+	MsgAddRouteControlMessage     //Node -> Control channel, add new route
+	MsgRemoveRouteControlMessage  //Node -> Control channel, remove route
 	//MessageMouseScroll        // 1
 	//MessageMouseButton        // 2
 	//MessageCharacter
 	//MessageKey
 )
 
-func GetMessageType(message []byte) uint8 {
-	var value uint8
-	rBuf := bytes.NewReader(message[4:5])
+func GetMessageType(message []byte) uint16 {
+	var value uint16
+	rBuf := bytes.NewReader(message[0:2])
 	err := binary.Read(rBuf, binary.LittleEndian, &value)
 	if err != nil {
 		fmt.Println("binary.Read failed: ", err)
@@ -60,6 +60,7 @@ type OutRouteMessage struct {
 //simulates one end of a transport, sending data to other end of the pair
 type TransportDatagramTransfer struct {
 	//put seq number for confirmation/ACK
+	RouteId  RouteId
 	Sequence uint32 //sequential sequence number of ACK
 	Datagram []byte
 }
@@ -69,17 +70,19 @@ type TransportDatagramACK struct {
 	Bitarray       uint32 //ACK packets at LowestSequence + Bit offset, if equal to 1
 }
 
-type CreateChannelControlMessage struct {
+type InControlMessage struct {
+	ChannelId      ChannelId
+	PayloadMessage []byte
 }
+
+//type CreateChannelControlMessage struct {
+//}
 
 type AddRouteControlMessage struct {
-	NodeId  cipher.PubKey
-	RouteId RouteId
-}
-
-type ExtendRouteControlMessage struct {
-	NodeId  cipher.PubKey
-	RouteId RouteId
+	IncomingTransportId TransportId
+	OutgoingTransportId TransportId
+	IncomingRouteId     RouteId
+	OutgoingRouteId     RouteId
 }
 
 type RemoveRouteControlMessage struct {
