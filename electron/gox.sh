@@ -59,30 +59,30 @@ do
             OUT="${OUTPUT}${WIN32_OUT}"
             echo "mkdir $OUT"
             mkdir -p "$OUT"
-            mv "${OUTPUT}skycoin_${s[0]}_${s[1]}.exe" "${OUT}/skycoin.exe"
+            mv "${OUTPUT}mzcoin_${s[0]}_${s[1]}.exe" "${OUT}/mzcoin.exe"
         else
             OUT="${OUTPUT}${WIN64_OUT}"
             mkdir -p "${OUT}"
-            mv "${OUTPUT}skycoin_${s[0]}_${s[1]}.exe" "${OUT}/skycoin.exe"
+            mv "${OUTPUT}mzcoin_${s[0]}_${s[1]}.exe" "${OUT}/mzcoin.exe"
         fi
         ;;
     "darwin")
         OUT="${OUTPUT}${OSX64_OUT}"
         echo "mkdir ${OUT}"
         mkdir -p "${OUT}"
-        mv "${OUTPUT}skycoin_${s[0]}_${s[1]}" "${OUT}/skycoin"
+        mv "${OUTPUT}mzcoin_${s[0]}_${s[1]}" "${OUT}/mzcoin"
         ;;
     "linux")
         if [ "${s[1]}" = "amd64" ]; then
             OUT="${OUTPUT}${LNX64_OUT}"
             echo "mkdir ${OUT}"
             mkdir -p "${OUT}"
-            mv "${OUTPUT}skycoin_${s[0]}_${s[1]}" "${OUT}/skycoin"
+            mv "${OUTPUT}mzcoin_${s[0]}_${s[1]}" "${OUT}/mzcoin"
         elif [ "${s[1]}" = "arm" ]; then
             OUT="${OUTPUT}${LNX_ARM_OUT}"
             echo "mkdir ${OUT}"
             mkdir -p "${OUT}"
-            mv "${OUTPUT}skycoin_${s[0]}_${s[1]}" "${OUT}/skycoin"
+            mv "${OUTPUT}mzcoin_${s[0]}_${s[1]}" "${OUT}/mzcoin"
         fi
         ;;
     esac

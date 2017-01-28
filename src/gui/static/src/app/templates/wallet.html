@@ -4,7 +4,7 @@
 <div id="sky-center">
     <div id="main-content" class="ng-isolate-scope">
         <div class="header-for-total-sky">
-            <span class="total-sky-text">Confirmed Balance: {{totalSky|number}} SKY</span>
+            <span class="total-sky-text">Confirmed Balance: {{totalSky|number}} MZC</span>
         </div>
         <ul ng-class="{'nav-stacked': vertical, 'nav-justified': justified}" class="nav nav-tabs">
             <li [class.active]="displayMode === displayModeEnum.first">
@@ -76,7 +76,7 @@
                                 </td>
                                 <td></td>
 
-                                <td class="text-center">{{wallet.balance}} SKY</td>
+                                <td class="text-center">{{wallet.balance}} MZC</td>
                                 <td class="text-right">{{wallet.entries.length}}&nbsp;</td>
                                 <td class="text-right">
                                     <a href="#" (click)="addNewAddress(wallet)"><i class="fa fa-plus add-address"></i></a></td>
@@ -85,7 +85,7 @@
                                 <td></td>
                                 <td class="text-center"> {{idx+1}}</td>
                                 <td><a href="#" (click)="showQR(entry.address)"><i class="fa " aria-hidden="true"></i>&nbsp;<i class="fa fa-qrcode"></i></a>&nbsp;{{entry.address}}</td>
-                                <td class="text-right">{{entry.balance?entry.balance:0}} SKY</td>
+                                <td class="text-right">{{entry.balance?entry.balance:0}} MZC</td>
                                 <td></td>
                                 <td></td>
                             </tr>
@@ -310,7 +310,7 @@
                             Transactions: {{selectedBlock.body.txns.length}}
                         </p>
                         <p>
-                            Total Value: {{GetBlockTotalAmount(selectedBlock)}} SKY
+                            Total Value: {{GetBlockTotalAmount(selectedBlock)}} MZC
                         </p>
                         <br/>
                         <h4>Transactions</h4>
@@ -332,7 +332,7 @@
                                         <div>
                                             <p *ngFor="let item of txns.outputs" class="text-right">{{item.coins}}</p>
                                         </div>
-                                        <p class="text-right">Total SKY: {{GetTransactionAmount2(txns)}}</p>
+                                        <p class="text-right">Total MZC: {{GetTransactionAmount2(txns)}}</p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -351,7 +351,7 @@
                             Confirmations:
                         </p>
                         <p>
-                            Total Value: {{GetTransactionAmount2(selectedBlockTransaction)}} SKY
+                            Total Value: {{GetTransactionAmount2(selectedBlockTransaction)}} MZC
                         </p>
                         <table class="table" style="width:100%;font-size:11px;">
                             <tbody>
@@ -367,7 +367,7 @@
                                         <div>
                                             <p *ngFor="let item of selectedBlockTransaction.outputs" class="text-right">{{item.coins}}</p>
                                         </div>
-                                        <p class="text-right">Total SKY: {{GetTransactionAmount2(selectedBlockTransaction)}}</p>
+                                        <p class="text-right">Total MZC: {{GetTransactionAmount2(selectedBlockTransaction)}}</p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -382,7 +382,7 @@
                             Number of Transactions:
                         </p>
                         <p>
-                            Balance: {{selectedBlockAddressBalance}} SKY
+                            Balance: {{selectedBlockAddressBalance}} MZC
                         </p>
                         <p>
                             Total Received:
@@ -408,7 +408,7 @@
                                     </td>
                                     <td>
                                         <div>
-                                            <p>{{ux.coins/1000000|number}} SKY</p>
+                                            <p>{{ux.coins/1000000|number}} MZC</p>
                                         </div>
                                     </td>
                                 </tr>

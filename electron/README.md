@@ -159,9 +159,9 @@ Building
 ./build.sh
 ```
 
-* compiles the skycoin app with gox (in parallel for all targets),
+* compiles the mzcoin app with gox (in parallel for all targets),
 * creates the base electron app
-* copies the skycoin binaries and static assets into the electron app
+* copies the mzcoin binaries and static assets into the electron app
 * compresses the electron app
 
 Final results are placed in the `release/` folder.

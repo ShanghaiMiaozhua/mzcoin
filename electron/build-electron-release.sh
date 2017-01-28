@@ -49,25 +49,25 @@ fi
 pushd "$FINAL_OUTPUT" >/dev/null
 if [ -e "mac" ]; then
     pushd "mac" >/dev/null
-    if [ -e "Skycoin-${SKY_VERSION}.dmg" ]; then
-        mv "Skycoin-${SKY_VERSION}.dmg" "../skycoin-${SKY_VERSION}-gui-osx-x64.dmg"
-    elif [ -e "Skycoin.app" ]; then
-        tar czf "../skycoin-${SKY_VERSION}-gui-osx-x64.zip" --owner=0 --group=0 "Skycoin.app"
+    if [ -e "Mzcoin-${SKY_VERSION}.dmg" ]; then
+        mv "Mzcoin-${SKY_VERSION}.dmg" "../mzcoin-${SKY_VERSION}-gui-osx-x64.dmg"
+    elif [ -e "Mzcoin.app" ]; then
+        tar czf "../mzcoin-${SKY_VERSION}-gui-osx-x64.zip" --owner=0 --group=0 "Mzcoin.app"
     fi
     popd >/dev/null
     rm -rf "mac"
 fi
 
-IMG="skycoin-${SKY_VERSION}-x86_64.AppImage"
-DEST_IMG="skycoin-${SKY_VERSION}-gui-linux-x64.AppImage"
+IMG="mzcoin-${SKY_VERSION}-x86_64.AppImage"
+DEST_IMG="mzcoin-${SKY_VERSION}-gui-linux-x64.AppImage"
 if [ -e $IMG ]; then
     mv "$IMG" "$DEST_IMG"
     chmod +x "$DEST_IMG"
 fi
 
-EXE="Skycoin Setup ${SKY_VERSION}.exe"
+EXE="Mzcoin Setup ${SKY_VERSION}.exe"
 if [ -e "$EXE" ]; then
-    mv "$EXE" "skycoin-${SKY_VERSION}-gui-win-setup.exe"
+    mv "$EXE" "mzcoin-${SKY_VERSION}-gui-win-setup.exe"
 fi
 
 # clean unpacked folders
