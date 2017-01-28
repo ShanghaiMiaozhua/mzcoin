@@ -1,12 +1,24 @@
 {
   "_args": [
     [
+<<<<<<< HEAD
       "@angular/common@2.0.0-rc.1",
 <<<<<<< HEAD
       "/Users/heaven/src/github.com/ShanghaiKuaibei/mzcoin/src/gui/static"
 =======
       "/Users/napandey/coding/skycoin/src/gui/static"
 >>>>>>> upstream/master
+=======
+      {
+        "name": "@angular/common",
+        "raw": "@angular/common@2.0.0-rc.1",
+        "rawSpec": "2.0.0-rc.1",
+        "scope": "@angular",
+        "spec": "2.0.0-rc.1",
+        "type": "version"
+      },
+      "/home/atomos/.gvm/pkgsets/go1.7/global/src/github.com/skycoin/skycoin/src/gui/static"
+>>>>>>> eb8e27b84d01c4f62b87325a8a4716aa919438be
     ]
   ],
   "_from": "@angular/common@2.0.0-rc.1",
@@ -41,10 +53,14 @@
   "_shrinkwrap": null,
   "_spec": "@angular/common@2.0.0-rc.1",
 <<<<<<< HEAD
+<<<<<<< HEAD
   "_where": "/Users/heaven/src/github.com/ShanghaiKuaibei/mzcoin/src/gui/static",
 =======
   "_where": "/Users/napandey/coding/skycoin/src/gui/static",
 >>>>>>> upstream/master
+=======
+  "_where": "/home/atomos/.gvm/pkgsets/go1.7/global/src/github.com/skycoin/skycoin/src/gui/static",
+>>>>>>> eb8e27b84d01c4f62b87325a8a4716aa919438be
   "author": {
     "name": "angular"
   },

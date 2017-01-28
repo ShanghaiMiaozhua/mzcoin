@@ -2,13 +2,18 @@
 set -e -o pipefail
 
 # These values are also in gulpfile.js and package.json and must be equal
-SKY_VERSION="0.8.1"
+SKY_VERSION="11.0"
 ELN_VERSION="v1.4.13"
 ELN_OUTPUT_BASE=".electron_output"
 ELN_OUTPUT="${ELN_OUTPUT_BASE}/${ELN_VERSION}"
 
-GOX_OSARCH="linux/amd64 windows/amd64 darwin/amd64"
+GOX_OSARCH="linux/amd64 linux/arm windows/amd64 windows/386 darwin/amd64"
 # GOX_OSARCH="darwin/amd64"
+# GOX_OSARCH="windows/amd64"
+# GOX_OSARCH="windows/386"
+# GOX_OSARCH="linux/arm"
+
+
 GOX_OUTPUT=".gox_output"
 
 STL_OUTPUT=".standalone_output"
@@ -31,15 +36,29 @@ OSX64_ELN="mzcoin-${SKY_VERSION}-gui-osx-darwin-x64"
 OSX64_ELN_ZIP="${OSX64_ELN}.zip"
 OSX64_STL="mzcoin-${SKY_VERSION}-bin-osx-darwin-x64"
 OSX64_STL_ZIP="${OSX64_STL}.zip"
+OSX64_OUT="mac_x64"
 
 WIN64_ELN="mzcoin-${SKY_VERSION}-gui-win-x64"
 WIN64_ELN_PLT="win32-x64"
 WIN64_ELN_ZIP="${WIN64_ELN}.zip"
 WIN64_STL="mzcoin-${SKY_VERSION}-bin-win-x64"
 WIN64_STL_ZIP="${WIN64_STL}.zip"
+WIN64_OUT="win_x64"
+
+WIN32_ELN="skycoin-${SKY_VERSION}-gui-win-x86"
+WIN32_ELN_PLT="win32-ia32"
+WIN32_ELN_ZIP="${WIN32_ELN}.zip"
+WIN32_STL="skycoin-${SKY_VERSION}-bin-win-x86"
+WIN32_STL_ZIP="${WIN32_STL}.zip"
+WIN32_OUT="win_ia32"
 
 LNX64_ELN="mzcoin-${SKY_VERSION}-gui-linux-x64"
 LNX64_ELN_PLT="linux-x64"
 LNX64_ELN_ZIP="${LNX64_ELN}.tar.gz"
 LNX64_STL="mzcoin-${SKY_VERSION}-bin-linux-x64"
 LNX64_STL_ZIP="${LNX64_STL}.tar.gz"
+LNX64_OUT="linux_x64"
+
+LNX_ARM_STL="skycoin-${SKY_VERSION}-bin-linux-arm"
+LNX_ARM_STL_ZIP="${LNX_ARM_STL}.tar.gz"
+LNX_ARM_OUT="linux_arm"

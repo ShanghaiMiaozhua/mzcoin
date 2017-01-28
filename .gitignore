@@ -51,7 +51,7 @@ ehthumbs.db
 Thumbs.db
 
 *.pyx
-build
+#build
 *~
 
 *.orig
@@ -87,6 +87,7 @@ masterdata/
 .genv
 
 src/gui/static/dev
+src/mesh/gui/static/dev
 
 npm-debug.log
 

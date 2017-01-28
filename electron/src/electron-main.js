@@ -72,7 +72,6 @@ function startSkycoin() {
         // '-web-interface-https=true',
     ]
 
-
     skycoin = childProcess.spawn(exe, args);
 
     skycoin.on('error', (e) => {

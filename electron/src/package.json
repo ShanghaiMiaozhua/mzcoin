@@ -1,7 +1,9 @@
 {
     "name": "mzcoin",
+    "author": "mzcoin",
     "productName": "Mzcoin",
     "version": "0.8.1",
+    "description": "mzcoin wallet",
     "main": "electron-main.js",
     "dependencies": {
         "electron-debug": "^1.0.1",

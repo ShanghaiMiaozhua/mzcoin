@@ -12,14 +12,17 @@ pushd "$SCRIPTDIR" >/dev/null
 
 OSX64="${ELN_OUTPUT}/${OSX64_ELN_PLT}"
 WIN64="${ELN_OUTPUT}/${WIN64_ELN_PLT}"
+WIN32="${ELN_OUTPUT}/${WIN32_ELN_PLT}"
 LNX64="${ELN_OUTPUT}/${LNX64_ELN_PLT}"
 
 OSX64_RES="${OSX64}/${OSX64_APP}/Contents/Resources/app"
 WIN64_RES="${WIN64}/resources/app"
+WIN32_RES="${WIN32}/resources/app"
 LNX64_RES="${LNX64}/resources/app"
 
 OSX64_SRC="${OSX64_RES}/src"
 WIN64_SRC="${WIN64}/src"
+WIN32_SRC="${WIN32}/src"
 LNX64_SRC="${LNX64}/src"
 
 # Capitalize OS X .app for convention
@@ -43,7 +46,7 @@ function copy_if_exists {
     if [  -f "$BIN" ]; then
         # Copy binary to electron app
         echo "Copying $BIN to $DESTBIN"
-        mkdir -p $DESTBIN
+        # mkdir -p $DESTBIN
         cp "$BIN" "$DESTBIN"
 
         # Copy static resources to electron app
@@ -56,9 +59,10 @@ function copy_if_exists {
 
 echo "Copying mzcoin binaries"
 
-copy_if_exists "mzcoin_darwin_amd64" "$OSX64_RES" "mzcoin" "$OSX64_SRC"
-copy_if_exists "mzcoin_windows_amd64.exe" "$WIN64_RES" "mzcoin.exe" "$WIN64_SRC"
-copy_if_exists "mzcoin_linux_amd64" "$LNX64_RES" "mzcoin" "$LNX64_SRC"
+copy_if_exists "skycoin_darwin_amd64" "$OSX64_RES" "skycoin" "$OSX64_SRC"
+copy_if_exists "skycoin_windows_amd64.exe" "$WIN64_RES" "skycoin.exe" "$WIN64_SRC"
+copy_if_exists "skycoin_windows_386.exe" "$WIN32_RES" "skycoin.exe" "$WIN32_SRC"
+copy_if_exists "skycoin_linux_amd64" "$LNX64_RES" "skycoin" "$LNX64_SRC"
 
 # Copy the source for reference
 # tar it with filters, move it, then untar in order to do this
