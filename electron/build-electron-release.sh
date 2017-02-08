@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e -o pipefail
 
-# Builds an entire skycoin + electron-based GUI for release
+# Builds an entire electron-based GUI for release
 
 # Implemented architectures:
 #       darwin/amd64
@@ -49,25 +49,25 @@ fi
 pushd "$FINAL_OUTPUT" >/dev/null
 if [ -e "mac" ]; then
     pushd "mac" >/dev/null
-    if [ -e "Mzcoin-${SKY_VERSION}.dmg" ]; then
-        mv "Mzcoin-${SKY_VERSION}.dmg" "../mzcoin-${SKY_VERSION}-gui-osx-x64.dmg"
-    elif [ -e "Mzcoin.app" ]; then
-        tar czf "../mzcoin-${SKY_VERSION}-gui-osx-x64.zip" --owner=0 --group=0 "Mzcoin.app"
+    if [ -e "${PDT_NAME}-${APP_VERSION}.dmg" ]; then
+        mv "${PDT_NAME}-${APP_VERSION}.dmg" "../${PKG_NAME}-${APP_VERSION}-gui-osx-x64.dmg"
+    elif [ -e "${PDT_NAME}.app" ]; then
+        tar czf "../${PKG_NAME}-${APP_VERSION}-gui-osx-x64.zip" --owner=0 --group=0 "${PDT_NAME}.app"
     fi
     popd >/dev/null
     rm -rf "mac"
 fi
 
-IMG="mzcoin-${SKY_VERSION}-x86_64.AppImage"
-DEST_IMG="mzcoin-${SKY_VERSION}-gui-linux-x64.AppImage"
+IMG="${PKG_NAME}-${APP_VERSION}-x86_64.AppImage"
+DEST_IMG="${PKG_NAME}-${APP_VERSION}-gui-linux-x64.AppImage"
 if [ -e $IMG ]; then
     mv "$IMG" "$DEST_IMG"
     chmod +x "$DEST_IMG"
 fi
 
-EXE="Mzcoin Setup ${SKY_VERSION}.exe"
+EXE="${PDT_NAME} Setup ${APP_VERSION}.exe"
 if [ -e "$EXE" ]; then
-    mv "$EXE" "mzcoin-${SKY_VERSION}-gui-win-setup.exe"
+    mv "$EXE" "${PKG_NAME}-${APP_VERSION}-gui-win-setup.exe"
 fi
 
 # clean unpacked folders

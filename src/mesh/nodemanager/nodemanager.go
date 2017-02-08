@@ -2,6 +2,7 @@ package nodemanager
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/skycoin/skycoin/src/cipher"
 	"github.com/skycoin/skycoin/src/mesh/errors"
@@ -22,7 +23,66 @@ type NodeManager struct {
 	routeGraph           *RouteGraph
 }
 
-func NewNodeManager() *NodeManager {
+func NewNetwork() *NodeManager {
+	nm := newNodeManager()
+	return nm
+}
+
+func (self *NodeManager) AddNewNode() cipher.PubKey {
+	nodeToAdd := node.NewNode()
+	self.addNode(nodeToAdd)
+	return nodeToAdd.Id
+}
+
+func (self *NodeManager) AddAndConnect() cipher.PubKey {
+	nodeToAdd := node.NewNode()
+	self.addNode(nodeToAdd)
+	id := nodeToAdd.Id
+	if len(self.nodeIdList) >= 2 {
+		self.connectRandomly(id)
+	}
+	return id
+}
+
+func (self *NodeManager) CreateRandomNetwork(n int) []cipher.PubKey {
+	nodes := []cipher.PubKey{}
+	for i := 0; i < n; i++ {
+		nodes = append(nodes, self.AddAndConnect())
+	}
+	self.rebuildRoutes()
+	return nodes
+}
+
+func (self *NodeManager) connectRandomly(node0 cipher.PubKey) {
+	var node1 cipher.PubKey
+	for {
+		node1 = self.getRandomNode()
+		if node0 != node1 {
+			break
+		}
+	}
+	self.ConnectNodeToNode(node0, node1)
+
+}
+
+func (self *NodeManager) routeExists(pubkey0, pubkey1 cipher.PubKey) bool {
+	_, exists := self.routeGraph.findRoute(pubkey0, pubkey1)
+	return exists
+}
+
+func (self *NodeManager) Register(address cipher.PubKey, consumer messages.Consumer) error {
+	node0, err := self.getNodeById(address)
+	if err != nil {
+		return err
+	}
+	node0.AssignConsumer(consumer)
+	return nil
+}
+
+func (self *NodeManager) Tick() {
+}
+
+func newNodeManager() *NodeManager {
 	nm := new(NodeManager)
 	nm.nodeList = make(map[cipher.PubKey]*node.Node)
 	nm.transportFactoryList = []*transport.TransportFactory{}
@@ -30,7 +90,7 @@ func NewNodeManager() *NodeManager {
 	return nm
 }
 
-func (self *NodeManager) GetNodeById(id cipher.PubKey) (*node.Node, error) {
+func (self *NodeManager) getNodeById(id cipher.PubKey) (*node.Node, error) {
 	result, found := self.nodeList[id]
 	if !found {
 		return &node.Node{}, errors.ERR_NODE_NOT_FOUND
@@ -38,22 +98,31 @@ func (self *NodeManager) GetNodeById(id cipher.PubKey) (*node.Node, error) {
 	return result, nil
 }
 
-func (self *NodeManager) AddNewNode() cipher.PubKey {
-	nodeToAdd := node.NewNode()
-	self.AddNode(nodeToAdd)
-	return nodeToAdd.Id
-}
-
-func (self *NodeManager) AddNode(nodeToAdd *node.Node) {
+func (self *NodeManager) addNode(nodeToAdd *node.Node) {
 	id := nodeToAdd.Id
 	self.nodeList[id] = nodeToAdd
 	self.nodeIdList = append(self.nodeIdList, id)
 }
 
-func (self *NodeManager) Tick() {
-	for _, node := range self.nodeList {
-		node.Tick()
+func (self *NodeManager) getRandomNode() cipher.PubKey {
+	list := self.nodeIdList
+	max := len(list)
+	index := rand.Intn(max)
+	randomNode := list[index]
+	return randomNode
+}
+
+func (self *NodeManager) connected(pubkey0, pubkey1 cipher.PubKey) bool {
+	node0, err := self.getNodeById(pubkey0)
+	if err != nil {
+		return false
 	}
+	node1, err := self.getNodeById(pubkey1)
+	if err != nil {
+		return false
+	}
+
+	return node0.ConnectedTo(node1) && node1.ConnectedTo(node0)
 }
 
 func (self *NodeManager) ConnectNodeToNode(idA, idB cipher.PubKey) *transport.TransportFactory {
@@ -84,13 +153,4 @@ func (self *NodeManager) ConnectNodeToNode(idA, idB cipher.PubKey) *transport.Tr
 	self.transportFactoryList = append(self.transportFactoryList, tf)
 	go tf.Tick()
 	return tf
-}
-
-func (self *NodeManager) AssignConsumer(address cipher.PubKey, consumer messages.Consumer) error {
-	node0, err := self.GetNodeById(address)
-	if err != nil {
-		return err
-	}
-	node0.AssignConsumer(consumer)
-	return nil
 }

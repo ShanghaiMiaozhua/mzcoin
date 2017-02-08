@@ -85,8 +85,19 @@ export class LoadWalletComponent implements OnInit {
     displayModeEnum = DisplayModeEnum;
     selectedMenu: string;
 
+    userTransactions:Array<any>;
+
     @ViewChild(SkyCoinOutputComponent)
     private outputComponent: SkyCoinOutputComponent;
+
+    @ViewChild('spendaddress')
+    private spendAddress:any;
+
+    @ViewChild('spendamount')
+    private spendAmount:any;
+
+    @ViewChild('transactionNote')
+        private transactionNote:any;
 
     QrAddress: string;
     QrIsVisible: boolean;
@@ -141,20 +152,19 @@ export class LoadWalletComponent implements OnInit {
         this.displayMode = DisplayModeEnum.first;
         this.totalSky = 0;
         this.selectedWallet = {};
+        this.userTransactions=[];
         this.loadWallet();
         this.loadConnections();
         this.loadDefaultConnections();
         this.loadBlockChain();
         this.loadNumberOfBlocks();
         this.loadProgress();
-        this.loadTransactions();
         this.isValidAddress = false;
         this.blockViewMode = 'recentBlocks'
 
         //Set interval function for load wallet every 15 seconds
         setInterval(() => {
             this.loadWallet();
-            //console.log("Refreshing balance");
         }, 30000);
         setInterval(() => {
             this.loadConnections();
@@ -220,6 +230,71 @@ export class LoadWalletComponent implements OnInit {
             )
     }
 
+    loadTransactionsForWallet(){
+        let addresses=[];
+        _.each(this.wallets,(wallet)=>{
+            _.each(wallet.entries,(entry)=>{
+                addresses.push(entry.address);
+            });
+        });
+
+        this.userTransactions=[];
+
+        var transactionData=[];
+
+        var self = this;
+
+        this.http.get('/lastTxs', {})
+            .map((res) => res.json())
+            .subscribe(transactions => {
+                _.each(transactions,(transaction)=>{
+                    //with each transaction that we have grab all the outputs and check if the outputs is pointing
+                    // to any of the current addresses.If yes then hold it.
+                    _.each(transaction.txn.outputs,(output)=>{
+                        if(addresses.indexOf(output.dst)>0){
+                            transactionData.push({'type':'confirmed','transactionInputs':transaction.txn.inputs,'transactionOutputs':transaction.txn.outputs
+                            ,'actualTransaction':transaction.txn
+                            });
+                        }
+                    });
+
+
+                });
+
+                this.userTransactions = _.uniq(transactionData,'actualTransaction.txId');
+            }, err => console.log("Error on load transactions: " + err), () => {
+
+            });
+
+
+        this.http.get('/pendingTxs', {})
+            .map((res) => res.json())
+            .subscribe(transactions => {
+
+                _.each(transactions,(transaction)=>{
+                    //with each transaction that we have grab all the outputs and check if the outputs is pointing
+                    // to any of the current addresses.If yes then hold it.
+
+                    _.each(transaction.transaction.outputs,(output)=>{
+                        if(addresses.indexOf(output.dst)>0){
+
+                            transactionData.push({'type':'pending','transactionInputs':transaction.transaction.inputs,'transactionOutputs':transaction.transaction.outputs
+                                ,'actualTransaction':transaction.transaction
+                            });
+
+                        }
+                    });
+                });
+                this.userTransactions = _.uniq(transactionData,'actualTransaction.txId');
+            }, err => console.log("Error on pending transactions: " + err), () => {
+
+            });
+
+
+
+
+    }
+
     //Load wallet function
     loadWallet(){
         this.totalSky = 0;
@@ -276,6 +351,8 @@ export class LoadWalletComponent implements OnInit {
                             });
                         });
                     });
+
+                    this.loadTransactionsForWallet();
 
                 },
                 err => console.log(err),
@@ -366,7 +443,7 @@ export class LoadWalletComponent implements OnInit {
     }
     GetTransactionAmount(transaction) {
       var ret = 0;
-      _.each(transaction.txn.outputs, function(o){
+      _.each(transaction.outputs, function(o){
         ret += Number(o.coins);
       })
 
@@ -743,6 +820,7 @@ export class LoadWalletComponent implements OnInit {
         headers.append('Content-Type', 'application/x-www-form-urlencoded');
         var stringConvert = 'id='+spendid+'&coins='+spendamount*1000000+"&fee=1&hours=1&dst="+spendaddress;
         //Post method executed
+        var self = this;
         this.http.post('/wallet/spend', stringConvert, {headers: headers})
             .map((res:Response) => res.json())
             .subscribe(
@@ -751,8 +829,15 @@ export class LoadWalletComponent implements OnInit {
                     this.updateStatusOfTransaction(response.txn.txid, {address:spendaddress,amount:amount});
                     this.readyDisable = false;
                     this.sendDisable = true;
+                    self.spendAddress.nativeElement.value = '';
+                    self.spendAmount.nativeElement.value =0;
+                    self.transactionNote.nativeElement.value = '';
+                    self.isValidAddress=false;
                 },
                 err => {
+
+
+
                     this.readyDisable = false;
                     this.sendDisable = true;
                     var logBody = err._body;
@@ -770,7 +855,10 @@ export class LoadWalletComponent implements OnInit {
                     //this.pendingTable.push({complete: 'Pending', address: spendaddress, amount: spendamount});
                 },
                 () => {
-                  //console.log('Spend successfully')
+                    self.spendAddress.nativeElement.value = '';
+                    self.spendAmount.nativeElement.value =0;
+                    self.transactionNote.nativeElement.value = '';
+                    self.isValidAddress=false;
                   $("#send_pay_to").val("");
                   $("#send_amount").val(0);
                 }
