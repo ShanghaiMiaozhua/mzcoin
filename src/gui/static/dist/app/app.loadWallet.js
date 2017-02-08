@@ -109,19 +109,18 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                     this.displayMode = DisplayModeEnum.first;
                     this.totalSky = 0;
                     this.selectedWallet = {};
+                    this.userTransactions = [];
                     this.loadWallet();
                     this.loadConnections();
                     this.loadDefaultConnections();
                     this.loadBlockChain();
                     this.loadNumberOfBlocks();
                     this.loadProgress();
-                    this.loadTransactions();
                     this.isValidAddress = false;
                     this.blockViewMode = 'recentBlocks';
                     //Set interval function for load wallet every 15 seconds
                     setInterval(function () {
                         _this.loadWallet();
-                        //console.log("Refreshing balance");
                     }, 30000);
                     setInterval(function () {
                         _this.loadConnections();
@@ -181,6 +180,52 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                         _this.numberOfBlocks = data.head.seq;
                     });
                 };
+                LoadWalletComponent.prototype.loadTransactionsForWallet = function () {
+                    var _this = this;
+                    var addresses = [];
+                    _.each(this.wallets, function (wallet) {
+                        _.each(wallet.entries, function (entry) {
+                            addresses.push(entry.address);
+                        });
+                    });
+                    this.userTransactions = [];
+                    var transactionData = [];
+                    var self = this;
+                    this.http.get('/lastTxs', {})
+                        .map(function (res) { return res.json(); })
+                        .subscribe(function (transactions) {
+                        _.each(transactions, function (transaction) {
+                            //with each transaction that we have grab all the outputs and check if the outputs is pointing
+                            // to any of the current addresses.If yes then hold it.
+                            _.each(transaction.txn.outputs, function (output) {
+                                if (addresses.indexOf(output.dst) > 0) {
+                                    transactionData.push({ 'type': 'confirmed', 'transactionInputs': transaction.txn.inputs, 'transactionOutputs': transaction.txn.outputs,
+                                        'actualTransaction': transaction.txn
+                                    });
+                                }
+                            });
+                        });
+                        _this.userTransactions = _.uniq(transactionData, 'actualTransaction.txId');
+                    }, function (err) { return console.log("Error on load transactions: " + err); }, function () {
+                    });
+                    this.http.get('/pendingTxs', {})
+                        .map(function (res) { return res.json(); })
+                        .subscribe(function (transactions) {
+                        _.each(transactions, function (transaction) {
+                            //with each transaction that we have grab all the outputs and check if the outputs is pointing
+                            // to any of the current addresses.If yes then hold it.
+                            _.each(transaction.transaction.outputs, function (output) {
+                                if (addresses.indexOf(output.dst) > 0) {
+                                    transactionData.push({ 'type': 'pending', 'transactionInputs': transaction.transaction.inputs, 'transactionOutputs': transaction.transaction.outputs,
+                                        'actualTransaction': transaction.transaction
+                                    });
+                                }
+                            });
+                        });
+                        _this.userTransactions = _.uniq(transactionData, 'actualTransaction.txId');
+                    }, function (err) { return console.log("Error on pending transactions: " + err); }, function () {
+                    });
+                };
                 //Load wallet function
                 LoadWalletComponent.prototype.loadWallet = function () {
                     var _this = this;
@@ -234,6 +279,7 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                                 });
                             });
                         });
+                        _this.loadTransactionsForWallet();
                     }, function (err) { return console.log(err); }, function () {
                         //console.log('Wallet load done')
                     });
@@ -323,7 +369,7 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                 };
                 LoadWalletComponent.prototype.GetTransactionAmount = function (transaction) {
                     var ret = 0;
-                    _.each(transaction.txn.outputs, function (o) {
+                    _.each(transaction.outputs, function (o) {
                         ret += Number(o.coins);
                     });
                     return ret;
@@ -665,6 +711,7 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                     headers.append('Content-Type', 'application/x-www-form-urlencoded');
                     var stringConvert = 'id=' + spendid + '&coins=' + spendamount * 1000000 + "&fee=1&hours=1&dst=" + spendaddress;
                     //Post method executed
+                    var self = this;
                     this.http.post('/wallet/spend', stringConvert, { headers: headers })
                         .map(function (res) { return res.json(); })
                         .subscribe(function (response) {
@@ -672,6 +719,10 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                         _this.updateStatusOfTransaction(response.txn.txid, { address: spendaddress, amount: amount });
                         _this.readyDisable = false;
                         _this.sendDisable = true;
+                        self.spendAddress.nativeElement.value = '';
+                        self.spendAmount.nativeElement.value = 0;
+                        self.transactionNote.nativeElement.value = '';
+                        self.isValidAddress = false;
                     }, function (err) {
                         _this.readyDisable = false;
                         _this.sendDisable = true;
@@ -690,7 +741,10 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                         }
                         //this.pendingTable.push({complete: 'Pending', address: spendaddress, amount: spendamount});
                     }, function () {
-                        //console.log('Spend successfully')
+                        self.spendAddress.nativeElement.value = '';
+                        self.spendAmount.nativeElement.value = 0;
+                        self.transactionNote.nativeElement.value = '';
+                        self.isValidAddress = false;
                         $("#send_pay_to").val("");
                         $("#send_amount").val(0);
                     });
@@ -831,6 +885,18 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                     core_1.ViewChild(outputs_component_1.SkyCoinOutputComponent), 
                     __metadata('design:type', outputs_component_1.SkyCoinOutputComponent)
                 ], LoadWalletComponent.prototype, "outputComponent", void 0);
+                __decorate([
+                    core_1.ViewChild('spendaddress'), 
+                    __metadata('design:type', Object)
+                ], LoadWalletComponent.prototype, "spendAddress", void 0);
+                __decorate([
+                    core_1.ViewChild('spendamount'), 
+                    __metadata('design:type', Object)
+                ], LoadWalletComponent.prototype, "spendAmount", void 0);
+                __decorate([
+                    core_1.ViewChild('transactionNote'), 
+                    __metadata('design:type', Object)
+                ], LoadWalletComponent.prototype, "transactionNote", void 0);
                 __decorate([
                     core_1.ViewChild(seed_component_1.SeedComponent), 
                     __metadata('design:type', seed_component_1.SeedComponent)
