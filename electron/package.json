@@ -3,7 +3,7 @@
     "productName": "Mzcoin",
     "author": "mzcoin",
     "main": "src/electron-main.js",
-    "version": "0.12.0",
+    "version": "0.13.0",
     "description": "mzcoin wallet",
     "build": {
         "appId": "org.shanghaikuaibei.mzcoin",
@@ -30,19 +30,23 @@
                 "to": "./resources/app"
             }]
         },
-        "extraResources": [{
+        "files": [
+            "!**/*",
+            "src/**/*"
+        ],
+        "extraResources": [
+            {
             "from": "../src/gui/static/dist/",
             "to": "./app/dist/",
-            "filter":[
+            "filter": [
                 "**/*",
                 "!current-skycoin.json"
-               ]
+            ]
         },
-            {
-                "from": "./skycoin",
-                "to": "./app/dist/"
-            }
-        ],
+        {
+            "from": "./skycoin/",
+            "to": "./app/dist/"
+        }],
         "directories": {
             "output": "release"
         }

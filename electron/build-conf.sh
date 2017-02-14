@@ -16,6 +16,7 @@ ELN_OUTPUT_BASE=".electron_output"
 ELN_OUTPUT="${ELN_OUTPUT_BASE}/${ELN_VERSION}"
 
 GOX_OSARCH="linux/amd64 linux/arm windows/amd64 windows/386 darwin/amd64"
+# GOX_OSARCH="windows/amd64 windows/386 darwin/amd64"
 # GOX_OSARCH="darwin/amd64"
 # GOX_OSARCH="windows/amd64"
 # GOX_OSARCH="windows/386"
