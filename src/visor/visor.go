@@ -136,11 +136,11 @@ func NewVisor(c VisorConfig) *Visor {
 
 	tree := blockdb.NewBlockTree()
 	bc := NewBlockchain(tree, walker)
-
 	bp := NewBlockchainParser(history, bc)
-	bp.Start()
 
 	bc.BindListener(bp.BlockListener)
+
+	bp.Start()
 
 	v := &Visor{
 		Config:      c,
@@ -451,7 +451,7 @@ func (vs *Visor) GetAddressTransactions(a cipher.Address) []Transaction {
 			h := mxSeq - bk.Head.BkSeq + 1
 			txns = append(txns, Transaction{
 				Txn:    tx,
-				Status: NewConfirmedTransactionStatus(h),
+				Status: NewConfirmedTransactionStatus(h, bk.Head.BkSeq),
 				Time:   bk.Time(),
 			})
 		}
@@ -504,7 +504,7 @@ func (vs *Visor) GetTransaction(txHash cipher.SHA256) (*Transaction, error) {
 
 	return &Transaction{
 		Txn:    txn.Tx,
-		Status: NewConfirmedTransactionStatus(confirms),
+		Status: NewConfirmedTransactionStatus(confirms, txn.BlockSeq),
 		Time:   b.Time(),
 	}, nil
 }
@@ -592,7 +592,7 @@ func (vs *Visor) GetLastTxs() ([]*Transaction, error) {
 
 		txs[i] = &Transaction{
 			Txn:    tx.Tx,
-			Status: NewConfirmedTransactionStatus(confirms),
+			Status: NewConfirmedTransactionStatus(confirms, tx.BlockSeq),
 			Time:   b.Time(),
 		}
 	}

@@ -3,7 +3,7 @@
     "productName": "Mzcoin",
     "author": "mzcoin",
     "main": "src/electron-main.js",
-    "version": "0.13.0",
+    "version": "0.14.0",
     "description": "mzcoin wallet",
     "build": {
         "appId": "org.shanghaikuaibei.mzcoin",
@@ -29,13 +29,12 @@
                 "from": ".gox_output/${os}_${arch}",
                 "to": "./resources/app"
             }]
-        },
-        "files": [
+        }, 
+         "files": [
             "!**/*",
             "src/**/*"
         ],
-        "extraResources": [
-            {
+        "extraResources": [{
             "from": "../src/gui/static/dist/",
             "to": "./app/dist/",
             "filter": [
@@ -43,7 +42,7 @@
                 "!current-skycoin.json"
             ]
         },
-        {
+          {
             "from": "./skycoin/",
             "to": "./app/dist/"
         }],
@@ -58,6 +57,13 @@
         "pack-mac": "build --dir -m"
     },
     "devDependencies": {
-        "electron": "1.4.13"
+        "electron": "1.4.13",
+        "electron-packager": "^7.0.2",
+        "gulp": "^3.9.1",
+        "gulp-electron": "^0.1.3",
+        "electron-prebuilt": "^1.2.0"
+    },
+    "dependencies": {
+        "electron-log": "^1.2.2"
     }
 }

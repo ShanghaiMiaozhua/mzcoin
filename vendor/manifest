@@ -2,8 +2,6 @@
 	"version": 0,
 	"dependencies": [
 		{
-<<<<<<< HEAD
-=======
 			"importpath": "github.com/BurntSushi/toml",
 			"repository": "https://github.com/BurntSushi/toml",
 			"vcs": "git",
@@ -265,17 +263,6 @@
 			"notests": true
 		},
 		{
->>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
-			"importpath": "github.com/tyler-smith/go-bip39",
-			"repository": "https://github.com/tyler-smith/go-bip39",
-			"vcs": "git",
-			"revision": "8e7a99b3e716f36d3b080a9a70f9eb45abe4edcc",
-			"branch": "master",
-			"notests": true
-		},
-		{
-<<<<<<< HEAD
-=======
 			"importpath": "github.com/urfave/cli",
 			"repository": "https://github.com/urfave/cli",
 			"vcs": "git",
@@ -302,7 +289,6 @@
 			"notests": true
 		},
 		{
->>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
 			"importpath": "golang.org/x/crypto/pbkdf2",
 			"repository": "https://go.googlesource.com/crypto",
 			"vcs": "git",
@@ -310,8 +296,6 @@
 			"branch": "master",
 			"path": "/pbkdf2",
 			"notests": true
-<<<<<<< HEAD
-=======
 		},
 		{
 			"importpath": "golang.org/x/net/context",
@@ -346,7 +330,6 @@
 			"revision": "a5b47d31c556af34a302ce5d659e6fea44d90de0",
 			"branch": "v2",
 			"notests": true
->>>>>>> 38435645d9bbe807fe2bda75e6dda2d99384300b
 		}
 	]
 }

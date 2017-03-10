@@ -6,13 +6,14 @@ import (
 
 type NodeInterface interface {
 	GetId() cipher.PubKey
-	InjectTransportMessage(msg []byte)
+	GetPeer() *Peer
+	InjectTransportMessage(*InRouteMessage)
 	SetTransport(TransportId, TransportInterface)
 	ConnectedTo(NodeInterface) bool
 }
 
 type TransportInterface interface {
-	InjectNodeMessage([]byte)
+	InjectNodeMessage(*InRouteMessage)
 }
 
 type Consumer interface {

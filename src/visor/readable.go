@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"time"
-
 	"encoding/json"
 	"errors"
 
@@ -48,6 +47,8 @@ type TransactionStatus struct {
 	// If confirmed, how many blocks deep in the chain it is. Will be at least
 	// 1 if confirmed.
 	Height uint64 `json:"height"`
+	// Execute block seq
+	BlockSeq uint64 `json:"block_seq"`
 	// We can't find anything about this txn.  Be aware that the txn may be
 	// in someone else's unconfirmed pool, and if valid, it may become a
 	// confirmed txn in the future
@@ -69,10 +70,11 @@ func NewUnknownTransactionStatus() TransactionStatus {
 		Unknown:     true,
 		Confirmed:   false,
 		Height:      0,
+		BlockSeq:    0,
 	}
 }
 
-func NewConfirmedTransactionStatus(height uint64) TransactionStatus {
+func NewConfirmedTransactionStatus(height uint64, blockSeq uint64) TransactionStatus {
 	if height == 0 {
 		log.Panic("Invalid confirmed transaction height")
 	}
@@ -81,6 +83,7 @@ func NewConfirmedTransactionStatus(height uint64) TransactionStatus {
 		Unknown:     false,
 		Confirmed:   true,
 		Height:      height,
+		BlockSeq:    blockSeq,
 	}
 }
 
@@ -109,6 +112,10 @@ type ReadableTransactionOutput struct {
 	Hours   uint64 `json:"hours"`
 }
 
+type ReadableTransactionInput struct {
+	Hash    string `json:"uxid"`
+	Address string `json:"owner"`
+}
 //convert balance to string
 //each 1,000,000 units is 1 coin
 //skyoin has up to 6 decimal places but no more
@@ -148,6 +155,13 @@ func NewReadableTransactionOutput(t *coin.TransactionOutput, txid cipher.SHA256)
 		Address: t.Address.String(), //Destination Address
 		Coins:   StrBalance(t.Coins),
 		Hours:   t.Hours,
+	}
+}
+
+func NewReadableTransactionInput(uxId string, ownerAddress string) ReadableTransactionInput {
+	return ReadableTransactionInput{
+		Hash:    uxId,
+		Address: ownerAddress, //Destination Address
 	}
 }
 
@@ -212,6 +226,18 @@ type ReadableTransaction struct {
 
 	Sigs []string                    `json:"sigs"`
 	In   []string                    `json:"inputs"`
+	Out  []ReadableTransactionOutput `json:"outputs"`
+}
+
+type ReadableAddressTransaction struct {
+	Length    uint32 `json:"length"`
+	Type      uint8  `json:"type"`
+	Hash      string `json:"txid"`
+	InnerHash string `json:"inner_hash"`
+	Timestamp uint64 `json:"timestamp,omitempty"`
+
+	Sigs []string                    `json:"sigs"`
+	In   []ReadableTransactionInput   `json:"inputs"`
 	Out  []ReadableTransactionOutput `json:"outputs"`
 }
 
@@ -283,6 +309,30 @@ func NewReadableTransaction(t *Transaction) ReadableTransaction {
 
 		Sigs: sigs,
 		In:   in,
+		Out:  out,
+	}
+}
+
+func NewReadableAddressTransaction(t *Transaction, inputs []ReadableTransactionInput) ReadableAddressTransaction {
+	txid := t.Txn.Hash()
+	sigs := make([]string, len(t.Txn.Sigs))
+	for i, _ := range t.Txn.Sigs {
+		sigs[i] = t.Txn.Sigs[i].Hex()
+	}
+	out := make([]ReadableTransactionOutput, len(t.Txn.Out))
+
+	for i, _ := range t.Txn.Out {
+		out[i] = NewReadableTransactionOutput(&t.Txn.Out[i], txid)
+	}
+	return ReadableAddressTransaction{
+		Length:    t.Txn.Length,
+		Type:      t.Txn.Type,
+		Hash:      t.Txn.Hash().Hex(),
+		InnerHash: t.Txn.InnerHash.Hex(),
+		Timestamp: t.Time,
+
+		Sigs: sigs,
+		In:   inputs,
 		Out:  out,
 	}
 }

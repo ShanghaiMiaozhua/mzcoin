@@ -80,6 +80,26 @@ func (gw *Gateway) GetConnection(addr string) interface{} {
 	return <-conn
 }
 
+// GetTrustConnections returns all trusted connections,
+// including private and public
+func (gw *Gateway) GetTrustConnections() interface{} {
+	conn := make(chan interface{})
+	gw.Requests <- func() {
+		conn <- gw.Daemon.GetTrustConnections(gw.D)
+	}
+	return <-conn
+}
+
+// GetExchgConnection returns all exchangeable connections,
+// including private and public
+func (gw *Gateway) GetExchgConnection() interface{} {
+	conn := make(chan interface{})
+	gw.Requests <- func() {
+		conn <- gw.Daemon.GetAllExchgConnections(gw.D)
+	}
+	return <-conn
+}
+
 /* Blockchain & Transaction status */
 //DEPRECATE
 
@@ -282,6 +302,21 @@ func (gw *Gateway) GetAddrUxOuts(addr cipher.Address) ([]*historydb.UxOutJSON, e
 		uxs[i] = historydb.NewUxOutJSON(ux)
 	}
 	return uxs, err
+}
+
+// GetAddrUxOuts gets all the address affected UxOuts.
+func (gw *Gateway) GetAddressUxOuts(addr cipher.Address) ([]*historydb.UxOut, error) {
+	var (
+		uxouts []*historydb.UxOut
+		err    error
+	)
+	c := make(chan struct{})
+	gw.Requests <- func() {
+		uxouts, err = gw.V.GetAddrUxOuts(addr)
+		c <- struct{}{}
+	}
+	<-c
+	return uxouts, err
 }
 
 // GetTimeNow returns the current Unix time
