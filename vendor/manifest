@@ -233,7 +233,7 @@
 			"importpath": "github.com/skycoin/skycoin",
 			"repository": "https://github.com/skycoin/skycoin",
 			"vcs": "git",
-			"revision": "797fe098d6b176ed70b73419e1991f310f4303b2",
+			"revision": "e3296f8f19a047b14edf103dd215094e31d9729b",
 			"branch": "master",
 			"notests": true
 		},
