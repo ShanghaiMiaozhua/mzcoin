@@ -102,7 +102,7 @@
                                 <select class="form-control" #selectedWallet2 (change)="onSelectWallet(selectedWallet2.value)">
                                     <option>Select Wallet</option>
                                     <option *ngFor="let item of walletsWithAddress" [disabled]="item.type=='address'" [selected]="item.type=='wallet'&&item.wallet.meta.filename==spendid" value="{{item.type=='wallet'?item.wallet.meta.filename:''}}">
-                                        {{item.type=='wallet'?(item.wallet.meta.label?item.wallet.meta.label:'Undefined') + '(All) - ' + item.wallet.balance + 'SKY':(item.wallet.meta.label?item.wallet.meta.label:'Undefined') + item.idx + '(' + item.entry.address + ') - ' + (item.entry.balance?item.entry.balance:0) + ' SKY'}}
+                                        {{item.type=='wallet'?(item.wallet.meta.label?item.wallet.meta.label:'Undefined') + '(All) - ' + item.wallet.balance + 'MZC':(item.wallet.meta.label?item.wallet.meta.label:'Undefined') + item.idx + '(' + item.entry.address + ') - ' + (item.entry.balance?item.entry.balance:0) + ' MZC'}}
                                     </option>
                                 </select>
                             </div>
@@ -335,7 +335,7 @@
                                     <div>
                                         <p *ngFor="let item of txns.outputs" class="text-right">{{item.coins}}</p>
                                     </div>
-                                    <p class="text-right">Total SKY: {{GetTransactionAmount2(txns)}}</p>
+                                    <p class="text-right">Total MZC: {{GetTransactionAmount2(txns)}}</p>
                                 </td>
                             </tr>
                             </tbody>
@@ -370,7 +370,7 @@
                                     <div>
                                         <p *ngFor="let item of selectedBlockTransaction.outputs" class="text-right">{{item.coins}}</p>
                                     </div>
-                                    <p class="text-right">Total SKY: {{GetTransactionAmount2(selectedBlockTransaction)}}</p>
+                                    <p class="text-right">Total MZC: {{GetTransactionAmount2(selectedBlockTransaction)}}</p>
                                 </td>
                             </tr>
                             </tbody>
@@ -411,7 +411,7 @@
                                 </td>
                                 <td>
                                     <div>
-                                        <p>{{ux.coins/1000000|number}} SKY</p>
+                                        <p>{{ux.coins/1000000|number}} MZC</p>
                                     </div>
                                 </td>
                             </tr>
