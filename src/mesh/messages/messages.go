@@ -7,18 +7,20 @@ import (
 )
 
 const (
-	MsgInRouteMessage            = iota // Transport -> Node
-	MsgOutRouteMessage                  // Node -> Transport
-	MsgTransportDatagramTransfer        // Transport -> Transport, simulating sending packet over network
-	MsgTransportDatagramACK             // Transport -> Transport, simulating ACK for packet
-	MsgInControlMessage                 // Transport -> Node, control message
-	MsgOutControlMessage                // Node -> Transport, control message
-	//	MsgCreateChannelControlMessage        // Node -> Control channel, create new control channel
-	MsgCloseChannelControlMessage // Node -> Control channel, close control channel
-	MsgAddRouteControlMessage     // Node -> Control channel, add new route
-	MsgRemoveRouteControlMessage  // Node -> Control channel, remove route
-	MsgRequestMessage             // Client -> Server
-	MsgResponseMessage            // Server -> Client
+	MsgInRouteMessage             = iota // Transport -> Node
+	MsgOutRouteMessage                   // Node -> Transport
+	MsgTransportDatagramTransfer         // Transport -> Transport, simulating sending packet over network
+	MsgTransportDatagramACK              // Transport -> Transport, simulating ACK for packet
+	MsgInControlMessage                  // Transport -> Node, control message
+	MsgOutControlMessage                 // Node -> Transport, control message
+	MsgCloseChannelControlMessage        // Node -> Control channel, close control channel
+	MsgAddRouteControlMessage            // Node -> Control channel, add new route
+	MsgRemoveRouteControlMessage         // Node -> Control channel, remove route
+	MsgConnectionMessage                 // Connection -> Connection
+	MsgConnectionAck                     // Connection -> Connection
+	MsgProxyMessage                      // Application -> Application
+	MsgAppMessage                        // Application -> Application
+	MsgCongestionPacket                  // Transport -> Transport
 	//MessageMouseScroll        // 1
 	//MessageMouseButton        // 2
 	//MessageCharacter
@@ -52,8 +54,14 @@ type InRouteMessage struct {
 
 //message node, writes to the channel of the transport
 type OutRouteMessage struct {
-	RouteId  RouteId //the incoming route
-	Datagram []byte  //length prefixed message
+	RouteId          RouteId //the incoming route
+	Datagram         []byte  //length prefixed message
+	ResponseRequired bool
+}
+
+type CongestionPacket struct {
+	TransportId TransportId //who sent it
+	Congestion  bool        // true - increase throttle, false - decrease
 }
 
 // Transport -> Transport
@@ -61,9 +69,10 @@ type OutRouteMessage struct {
 //simulates one end of a transport, sending data to other end of the pair
 type TransportDatagramTransfer struct {
 	//put seq number for confirmation/ACK
-	RouteId  RouteId
-	Sequence uint32 //sequential sequence number of ACK
-	Datagram []byte
+	RouteId          RouteId
+	Sequence         uint32 //sequential sequence number of ACK
+	Datagram         []byte
+	ResponseRequired bool
 }
 
 type TransportDatagramACK struct {
@@ -91,13 +100,30 @@ type RemoveRouteControlMessage struct {
 	RouteId RouteId
 }
 
-type RequestMessage struct {
-	Sequence  uint32
-	BackRoute RouteId
-	Payload   []byte
+type ConnectionMessage struct {
+	Sequence uint32
+	Order    uint32
+	Total    uint32
+	Payload  []byte
 }
 
-type ResponseMessage struct {
+type ConnectionAck struct {
 	Sequence uint32
-	Payload  []byte
+}
+
+type AppMessage struct {
+	Sequence         uint32
+	ResponseRequired bool
+	Payload          []byte
+}
+
+type AppResponse struct {
+	Response []byte
+	Err      error
+}
+
+type ProxyMessage struct {
+	Data       []byte
+	RemoteAddr string
+	NeedClose  bool
 }

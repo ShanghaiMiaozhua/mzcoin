@@ -16,10 +16,6 @@ import (
 	"github.com/skycoin/skycoin/src/util"
 )
 
-var DebugPrint bool = true //disable to disable printing
-
-// TODO -- parameterize configuration per pool
-
 // DisconnectReason is passed to ConnectionPool's DisconnectCallback
 type DisconnectReason error
 
@@ -73,6 +69,8 @@ type Config struct {
 	DisconnectCallback DisconnectCallback
 	// Triggered on client connect
 	ConnectCallback ConnectCallback
+	// Print debug logs
+	DebugPrint bool
 }
 
 // NewConfig returns a Config with defaults set
@@ -90,6 +88,7 @@ func NewConfig() Config {
 		ConnectionWriteQueueSize: 32,
 		DisconnectCallback:       nil,
 		ConnectCallback:          nil,
+		DebugPrint:               false,
 	}
 }
 
@@ -216,8 +215,6 @@ func (pool *ConnectionPool) Run() {
 			logger.Info("Listening for connections...")
 			conn, err := ln.Accept()
 			if err != nil {
-				// logger.Error("%v", err)
-
 				// When Accept() returns with a non-nill error, we check the quit
 				// channel to see if we should continue or quit. If quit, then we quit.
 				// Otherwise we continue
@@ -316,7 +313,6 @@ func (pool *ConnectionPool) handleConnection(conn net.Conn, solicited bool) {
 	msgChan := make(chan []byte, 10)
 	errChan := make(chan error)
 	go readLoop(c, pool.Config.ReadTimeout, pool.Config.MaxMessageLength, msgChan, errChan)
-
 	for {
 		select {
 		case m := <-c.WriteQueue:
@@ -357,20 +353,21 @@ func readLoop(conn *Connection, timeout time.Duration, maxMsgLen int, msgChan ch
 	}()
 	reader := bufio.NewReader(conn.Conn)
 	buf := make([]byte, 1024)
+	var rerr error
 	for {
 		deadline := time.Time{}
 		if timeout != 0 {
 			deadline = time.Now().Add(timeout)
 		}
 		if err := conn.Conn.SetReadDeadline(deadline); err != nil {
-			errChan <- DisconnectSetReadDeadlineFailed
-			return
+			rerr = DisconnectSetReadDeadlineFailed
+			break
 		}
 
 		data, err := readData(reader, buf)
 		if err != nil {
-			errChan <- err
-			return
+			rerr = err
+			break
 		}
 
 		if data == nil {
@@ -383,12 +380,25 @@ func readLoop(conn *Connection, timeout time.Duration, maxMsgLen int, msgChan ch
 		// decode data
 		datas, err := decodeData(conn.Buffer, maxMsgLen)
 		if err != nil {
-			errChan <- err
-			return
+			rerr = err
+			break
 		}
 
 		for _, d := range datas {
-			msgChan <- d
+			// use select to avoid the goroutine leak, cause if msgChan has no receiver, this goroutine
+			// will leak
+			select {
+			case msgChan <- d:
+			default:
+				return
+			}
+		}
+	}
+
+	if rerr != nil {
+		select {
+		case errChan <- rerr:
+		default:
 		}
 	}
 }
@@ -546,7 +556,7 @@ func (pool *ConnectionPool) Size() int {
 // SendMessage sends a Message to a Connection and pushes the result onto the
 // SendResults channel.
 func (pool *ConnectionPool) SendMessage(addr string, msg Message) error {
-	if DebugPrint {
+	if pool.Config.DebugPrint {
 		logger.Debug("Send, Msg Type: %s", reflect.TypeOf(msg))
 	}
 	var msgQueueFull bool
@@ -569,7 +579,7 @@ func (pool *ConnectionPool) SendMessage(addr string, msg Message) error {
 
 // BroadcastMessage sends a Message to all connections in the Pool.
 func (pool *ConnectionPool) BroadcastMessage(msg Message) {
-	if DebugPrint {
+	if pool.Config.DebugPrint {
 		logger.Debug("Broadcast, Msg Type: %s", reflect.TypeOf(msg))
 	}
 	fullWriteQueue := []string{}
@@ -593,7 +603,7 @@ func (pool *ConnectionPool) BroadcastMessage(msg Message) {
 // first return value.  Otherwise, error will be nil and DisconnectReason will
 // be the value returned from the message handler.
 func (pool *ConnectionPool) receiveMessage(c *Connection, msg []byte) (DisconnectReason, error) {
-	m, err := convertToMessage(c.Id, msg)
+	m, err := convertToMessage(c.Id, msg, pool.Config.DebugPrint)
 	if err != nil {
 		return nil, err
 	}

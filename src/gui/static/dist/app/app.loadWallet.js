@@ -1,4 +1,4 @@
-System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/operator/map', 'rxjs/add/operator/catch', './ng2-qrcode', './components/skycoin.edit.component', './components/seed.component', './components/outputs.component'], function(exports_1, context_1) {
+System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/Rx', 'rxjs/add/operator/map', 'rxjs/add/operator/catch', './ng2-qrcode', './components/skycoin.edit.component', './components/seed.component', './components/outputs.component', "./components/pending.transactions.component"], function(exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -10,7 +10,7 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var core_1, router_1, http_1, http_2, ng2_qrcode_1, skycoin_edit_component_1, seed_component_1, outputs_component_1;
+    var core_1, router_1, http_1, http_2, Rx_1, ng2_qrcode_1, skycoin_edit_component_1, seed_component_1, outputs_component_1, pending_transactions_component_1;
     var PagerService, LoadWalletComponent, DisplayModeEnum;
     return {
         setters:[
@@ -23,6 +23,9 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
             function (http_1_1) {
                 http_1 = http_1_1;
                 http_2 = http_1_1;
+            },
+            function (Rx_1_1) {
+                Rx_1 = Rx_1_1;
             },
             function (_1) {},
             function (_2) {},
@@ -37,6 +40,9 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
             },
             function (outputs_component_1_1) {
                 outputs_component_1 = outputs_component_1_1;
+            },
+            function (pending_transactions_component_1_1) {
+                pending_transactions_component_1 = pending_transactions_component_1_1;
             }],
         execute: function() {
             PagerService = (function () {
@@ -144,15 +150,15 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                         this.addresses = JSON.parse(localStorage.getItem('historyAddresses'));
                     }
                     /*$("#walletSelect").select2({
-                        templateResult: function(state) {
-                            return state.text;
-                            /!*if (!state.id) { return state.text; }
-                             var $state = $(
-                             '<span><img src="vendor/images/flags/' + state.element.value.toLowerCase() + '.png" class="img-flag" /> ' + state.text + '</span>'
-                             );
-                             return $state;*!/
-                        }
-                    });*/
+                     templateResult: function(state) {
+                     return state.text;
+                     /!*if (!state.id) { return state.text; }
+                     var $state = $(
+                     '<span><img src="vendor/images/flags/' + state.element.value.toLowerCase() + '.png" class="img-flag" /> ' + state.text + '</span>'
+                     );
+                     return $state;*!/
+                     }
+                     });*/
                 };
                 //Ready button function for disable "textbox" and enable "Send" button for ready to send coin
                 LoadWalletComponent.prototype.ready = function (spendId, spendaddress, spendamount) {
@@ -183,47 +189,22 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                 LoadWalletComponent.prototype.loadTransactionsForWallet = function () {
                     var _this = this;
                     var addresses = [];
+                    this.userTransactions = [];
                     _.each(this.wallets, function (wallet) {
                         _.each(wallet.entries, function (entry) {
                             addresses.push(entry.address);
                         });
                     });
-                    this.userTransactions = [];
-                    var transactionData = [];
-                    var self = this;
-                    this.http.get('/lastTxs', {})
-                        .map(function (res) { return res.json(); })
-                        .subscribe(function (transactions) {
-                        _.each(transactions, function (transaction) {
-                            //with each transaction that we have grab all the outputs and check if the outputs is pointing
-                            // to any of the current addresses.If yes then hold it.
-                            _.each(transaction.txn.outputs, function (output) {
-                                if (addresses.indexOf(output.dst) > 0) {
-                                    transactionData.push({ 'type': 'confirmed', 'transactionInputs': transaction.txn.inputs, 'transactionOutputs': transaction.txn.outputs,
-                                        'actualTransaction': transaction.txn
-                                    });
-                                }
+                    _.each(addresses, function (address) {
+                        _this.http.get('/explorer/address?address=' + address, {})
+                            .map(function (res) { return res.json(); })
+                            .subscribe(function (transactions) {
+                            _.each(transactions, function (transaction) {
+                                _this.userTransactions.push({ 'type': 'confirmed', 'transactionInputs': transaction.inputs, 'transactionOutputs': transaction.outputs,
+                                    'actualTransaction': transaction
+                                });
                             });
                         });
-                        _this.userTransactions = _.uniq(transactionData, 'actualTransaction.txId');
-                    }, function (err) { return console.log("Error on load transactions: " + err); }, function () {
-                    });
-                    this.http.get('/pendingTxs', {})
-                        .map(function (res) { return res.json(); })
-                        .subscribe(function (transactions) {
-                        _.each(transactions, function (transaction) {
-                            //with each transaction that we have grab all the outputs and check if the outputs is pointing
-                            // to any of the current addresses.If yes then hold it.
-                            _.each(transaction.transaction.outputs, function (output) {
-                                if (addresses.indexOf(output.dst) > 0) {
-                                    transactionData.push({ 'type': 'pending', 'transactionInputs': transaction.transaction.inputs, 'transactionOutputs': transaction.transaction.outputs,
-                                        'actualTransaction': transaction.transaction
-                                    });
-                                }
-                            });
-                        });
-                        _this.userTransactions = _.uniq(transactionData, 'actualTransaction.txId');
-                    }, function (err) { return console.log("Error on pending transactions: " + err); }, function () {
                     });
                 };
                 //Load wallet function
@@ -463,6 +444,11 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                             this.outputComponent.refreshOutputs();
                         }
                     }
+                    if (menu == 'PendingTxns') {
+                        if (this.pendingTxnComponent) {
+                            this.pendingTxnComponent.refreshPendingTxns();
+                        }
+                    }
                 };
                 LoadWalletComponent.prototype.getDateTimeString = function (ts) {
                     return moment.unix(ts).format("YYYY-MM-DD HH:mm");
@@ -673,19 +659,28 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                 };
                 LoadWalletComponent.prototype.updateStatusOfTransaction = function (txid, metaData) {
                     var _this = this;
-                    var headers = new http_2.Headers();
-                    headers.append('Content-Type', 'application/x-www-form-urlencoded');
-                    this.http.get('/transaction?txid=' + txid, { headers: headers })
-                        .map(function (res) { return res.json(); })
-                        .subscribe(
-                    //Response from API
-                    function (res) {
-                        _this.pendingTable.push({ 'time': res.txn.timestamp, 'status': res.status.confirmed ? 'Completed' : 'Unconfirmed', 'amount': metaData.amount, 'txId': txid, 'address': metaData.address });
-                        //Load wallet for refresh list
-                        _this.loadWallet();
+                    var self = this;
+                    var transactionConfirmed = false;
+                    Rx_1.Observable.timer(0, 1000).map(function (i) {
+                        if (transactionConfirmed) {
+                            throw new Error("Transaction confirmed");
+                        }
+                        var headers = new http_2.Headers();
+                        headers.append('Content-Type', 'application/x-www-form-urlencoded');
+                        _this.http.get('/transaction?txid=' + txid, { headers: headers })
+                            .map(function (res) { return res.json(); })
+                            .subscribe(function (res) {
+                            transactionConfirmed = res.status.confirmed;
+                            self.pendingTable = [];
+                            self.pendingTable.push({ 'time': res.txn.timestamp, 'status': res.status.confirmed ? 'Completed' : 'Unconfirmed', 'amount': metaData.amount, 'txId': txid, 'address': metaData.address });
+                            self.loadWallet();
+                        }, function (err) {
+                            console.log("Error on load transaction: " + err);
+                        }, function () {
+                        });
+                    }).subscribe(function () {
                     }, function (err) {
-                        console.log("Error on load transaction: " + err);
-                    }, function () {
+                        console.log("Transaction confirmed");
                     });
                 };
                 LoadWalletComponent.prototype.spend = function (spendid, spendaddress, spendamount) {
@@ -886,6 +881,10 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                     __metadata('design:type', outputs_component_1.SkyCoinOutputComponent)
                 ], LoadWalletComponent.prototype, "outputComponent", void 0);
                 __decorate([
+                    core_1.ViewChild(pending_transactions_component_1.PendingTxnsComponent), 
+                    __metadata('design:type', pending_transactions_component_1.PendingTxnsComponent)
+                ], LoadWalletComponent.prototype, "pendingTxnComponent", void 0);
+                __decorate([
                     core_1.ViewChild('spendaddress'), 
                     __metadata('design:type', Object)
                 ], LoadWalletComponent.prototype, "spendAddress", void 0);
@@ -904,7 +903,7 @@ System.register(['@angular/core', '@angular/router', '@angular/http', 'rxjs/add/
                 LoadWalletComponent = __decorate([
                     core_1.Component({
                         selector: 'load-wallet',
-                        directives: [router_1.ROUTER_DIRECTIVES, ng2_qrcode_1.QRCodeComponent, seed_component_1.SeedComponent, skycoin_edit_component_1.SkyCoinEditComponent, outputs_component_1.SkyCoinOutputComponent],
+                        directives: [router_1.ROUTER_DIRECTIVES, ng2_qrcode_1.QRCodeComponent, seed_component_1.SeedComponent, skycoin_edit_component_1.SkyCoinEditComponent, outputs_component_1.SkyCoinOutputComponent, pending_transactions_component_1.PendingTxnsComponent],
                         providers: [PagerService],
                         templateUrl: 'app/templates/wallet.html'
                     }), 

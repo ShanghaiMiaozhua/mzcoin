@@ -42,13 +42,13 @@ function startSkycoin() {
         return
     }
 
-    var reset = () => {
-        skycoin = null;
-    }
+  var reset = () => {
+    skycoin = null;
+  }
 
-    // Resolve skycoin binary location
-    var appPath = app.getPath('exe');
-    var exe = (() => {
+  // Resolve skycoin binary location
+  var appPath = app.getPath('exe');
+  var exe = (() => {
         switch (process.platform) {
             case 'darwin':
                 return path.join(appPath, '../../Resources/app/mzcoin');
@@ -72,119 +72,138 @@ function startSkycoin() {
         // '-web-interface-https=true',
     ]
 
-    skycoin = childProcess.spawn(exe, args);
+  skycoin = childProcess.spawn(exe, args);
 
-    skycoin.on('error', (e) => {
-        dialog.showErrorBox('Failed to start mzcoin', e.toString());
-        app.quit();
-    });
+  skycoin.on('error', (e) => {
+    dialog.showErrorBox('Failed to start skycoin', e.toString());
+  app.quit();
+});
 
-    skycoin.stdout.on('data', (data) => {
-        // log.info(data.toString());
-        console.log(data.toString());
+  skycoin.stdout.on('data', (data) => {
+    // log.info(data.toString());
+    console.log(data.toString());
 
-        // Scan for the web URL string
-        if (currentURL) {
-            return
-        }
-        const marker = 'Starting web interface on ';
-        var i = data.indexOf(marker);
-        if (i === -1) {
-            return
-        }
-        currentURL = defaultURL
-        app.emit('skycoin-ready', { url: currentURL });
-    });
+  // Scan for the web URL string
+  if (currentURL) {
+    return
+  }
+  const marker = 'Starting web interface on ';
+  var i = data.indexOf(marker);
+  if (i === -1) {
+    return
+  }
+  // var j = data.indexOf('\n', i);
 
-    skycoin.stderr.on('data', (data) => {
-        // log.info(data.toString());
-        console.log(data.toString());
-    });
+  // // dialog.showErrorBox('index of newline: ', j);
+  // if (j === -1) {
+  //     throw new Error('web interface url log line incomplete');
+  // }
+  // var url = data.slice(i + marker.length, j);
+  // currentURL = url.toString();
+  currentURL = defaultURL;
+  app.emit('skycoin-ready', { url: currentURL });
+});
 
-    skycoin.on('close', (code) => {
-        console.log('Mzcoin closed');
-        reset();
-    });
+  skycoin.stderr.on('data', (data) => {
+    // log.info(data.toString());
+    console.log(data.toString());
+});
 
-    skycoin.on('exit', (code) => {
-        console.log('Mzcoin exited');
-        reset();
-    });
+  skycoin.on('close', (code) => {
+    // log.info('Skycoin closed');
+    console.log('Skycoin closed');
+  reset();
+});
+
+  skycoin.on('exit', (code) => {
+    // log.info('Skycoin exited');
+    console.log('Skycoin exited');
+  reset();
+});
 }
 
 function createWindow(url) {
-    if (!url) {
-        url = defaultURL;
-    }
+  if (!url) {
+    url = defaultURL;
+  }
 
-    // Create the browser window.
-    win = new BrowserWindow({
-        width: 980,
-        height: 900,
-        title: 'Mzcoin',
-        nodeIntegration: false,
-        webPreferences: {
-            webgl: false,
-            webaudio: false,
-        },
-    });
+  // Create the browser window.
+  win = new BrowserWindow({
+    width: 980,
+    height: 900,
+    title: 'Mzcoin',
+    nodeIntegration: false,
+    webPreferences: {
+      webgl: false,
+      webaudio: false,
+    },
+  });
 
-    // patch out eval
-    win.eval = global.eval;
+  // patch out eval
+  win.eval = global.eval;
 
-    win.loadURL(url);
+  const ses = win.webContents.session
+  ses.clearCache(function () {
+    console.log('Cleared the caching of the skycoin wallet.');
+  });
 
-    // Open the DevTools.
-    // win.webContents.openDevTools();
+  ses.clearStorageData([],function(){
+    console.log('Cleared the stored cached data');
+  });
 
-    // Emitted when the window is closed.
-    win.on('closed', () => {
-        // Dereference the window object, usually you would store windows
-        // in an array if your app supports multi windows, this is the time
-        // when you should delete the corresponding element.
-        win = null;
-    });
+  win.loadURL(url);
 
-    // create application's main menu
-    var template = [{
-        label: "Mzcoin",
-        submenu: [
-            { label: "About Mzcoin", selector: "orderFrontStandardAboutPanel:" },
-            { type: "separator" },
-            { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); } }
-        ]
-    }, {
-        label: "Edit",
-        submenu: [
-            { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-            { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
-            { type: "separator" },
-            { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-            { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-            { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-            { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
-        ]
-    }];
+  // Open the DevTools.
+  // win.webContents.openDevTools();
 
-    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+  // Emitted when the window is closed.
+  win.on('closed', () => {
+    // Dereference the window object, usually you would store windows
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
+    win = null;
+});
+
+  // create application's main menu
+  var template = [{
+    label: "Mzcoin",
+    submenu: [
+      { label: "About Mzcoin", selector: "orderFrontStandardAboutPanel:" },
+      { type: "separator" },
+      { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); } }
+    ]
+  }, {
+    label: "Edit",
+    submenu: [
+      { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+      { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+      { type: "separator" },
+      { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+      { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+      { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+      { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+    ]
+  }];
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
 // Enforce single instance
 const alreadyRunning = app.makeSingleInstance((commandLine, workingDirectory) => {
-    // Someone tried to run a second instance, we should focus our window.
-    if (win) {
+      // Someone tried to run a second instance, we should focus our window.
+      if (win) {
         if (win.isMinimized()) {
-            win.restore();
+          win.restore();
         }
         win.focus();
-    } else {
+      } else {
         createWindow(currentURL || defaultURL);
-    }
+}
 });
 
 if (alreadyRunning) {
-    app.quit();
-    return;
+  app.quit();
+  return;
 }
 
 // This method will be called when Electron has finished
@@ -193,30 +212,30 @@ if (alreadyRunning) {
 app.on('ready', startSkycoin);
 
 app.on('skycoin-ready', (e) => {
-    createWindow(e.url);
+  createWindow(e.url);
 });
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
-    // On OS X it is common for applications and their menu bar
-    // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
+  // On OS X it is common for applications and their menu bar
+  // to stay active until the user quits explicitly with Cmd + Q
+  if (process.platform !== 'darwin') {
+  app.quit();
+}
 });
 
 app.on('activate', () => {
-    // On OS X it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (win === null) {
-        createWindow();
-    }
+  // On OS X it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  if (win === null) {
+  createWindow();
+}
 });
 
 app.on('will-quit', () => {
-    if (skycoin) {
-        skycoin.kill('SIGINT');
-    }
+  if (skycoin) {
+    skycoin.kill('SIGINT');
+  }
 });
 
 // In this file you can include the rest of your app's specific main process
