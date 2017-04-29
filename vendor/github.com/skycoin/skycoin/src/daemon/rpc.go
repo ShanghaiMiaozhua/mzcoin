@@ -35,6 +35,7 @@ type BlockchainProgress struct {
 }
 
 type ResendResult struct {
+	Txids []string `json:"txids"` // transaction id
 }
 
 type RPC struct{}
@@ -72,9 +73,11 @@ func (self RPC) GetConnections(d *Daemon) *Connections {
 	}
 	conns := make([]*Connection, 0, d.Pool.Pool.Size())
 	for _, c := range d.Pool.Pool.GetConnections() {
-		conn := self.GetConnection(d, c.Addr())
-		if conn != nil {
-			conns = append(conns, conn)
+		if c.Solicited {
+			conn := self.GetConnection(d, c.Addr())
+			if conn != nil {
+				conns = append(conns, conn)
+			}
 		}
 	}
 	return &Connections{Connections: conns}
@@ -104,20 +107,31 @@ func (rpc RPC) GetAllExchgConnections(d *Daemon) []string {
 }
 
 func (self RPC) GetBlockchainProgress(v *Visor) *BlockchainProgress {
-	if v.Visor == nil {
+	if v.v == nil {
 		return nil
 	}
 	return &BlockchainProgress{
-		Current: v.Visor.HeadBkSeq(),
+		Current: v.HeadBkSeq(),
 		Highest: v.EstimateBlockchainLength(),
 	}
 }
 
-func (self RPC) ResendTransaction(v *Visor, p *Pool,
-	txHash cipher.SHA256) *ResendResult {
-	if v.Visor == nil {
+func (self RPC) ResendTransaction(v *Visor, p *Pool, txHash cipher.SHA256) *ResendResult {
+	if v.v == nil {
 		return nil
 	}
 	v.ResendTransaction(txHash, p)
 	return &ResendResult{}
+}
+
+func (self RPC) ResendUnconfirmedTxns(v *Visor, p *Pool) *ResendResult {
+	if v.v == nil {
+		return nil
+	}
+	txids := v.ResendUnconfirmedTxns(p)
+	var rlt ResendResult
+	for _, txid := range txids {
+		rlt.Txids = append(rlt.Txids, txid.Hex())
+	}
+	return &rlt
 }

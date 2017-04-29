@@ -16,10 +16,6 @@ import (
 	"github.com/skycoin/skycoin/src/util"
 )
 
-var DebugPrint bool = true //disable to disable printing
-
-// TODO -- parameterize configuration per pool
-
 // DisconnectReason is passed to ConnectionPool's DisconnectCallback
 type DisconnectReason error
 
@@ -73,6 +69,8 @@ type Config struct {
 	DisconnectCallback DisconnectCallback
 	// Triggered on client connect
 	ConnectCallback ConnectCallback
+	// Print debug logs
+	DebugPrint bool
 }
 
 // NewConfig returns a Config with defaults set
@@ -90,6 +88,7 @@ func NewConfig() Config {
 		ConnectionWriteQueueSize: 32,
 		DisconnectCallback:       nil,
 		ConnectCallback:          nil,
+		DebugPrint:               false,
 	}
 }
 
@@ -114,10 +113,11 @@ type Connection struct {
 	LastSent time.Time
 	// Message send queue.
 	WriteQueue chan Message
+	Solicited  bool
 }
 
 // NewConnection creates a new Connection tied to a ConnectionPool
-func NewConnection(pool *ConnectionPool, id int, conn net.Conn, writeQueueSize int) *Connection {
+func NewConnection(pool *ConnectionPool, id int, conn net.Conn, writeQueueSize int, solicited bool) *Connection {
 	return &Connection{
 		Id:             id,
 		Conn:           conn,
@@ -126,6 +126,7 @@ func NewConnection(pool *ConnectionPool, id int, conn net.Conn, writeQueueSize i
 		LastReceived:   Now(),
 		LastSent:       Now(),
 		WriteQueue:     make(chan Message, writeQueueSize),
+		Solicited:      solicited,
 	}
 }
 
@@ -255,7 +256,7 @@ func (pool *ConnectionPool) strand(f func()) {
 
 // NewConnection creates a new Connection around a net.Conn.  Trying to make a connection
 // to an address that is already connected will panic.
-func (pool *ConnectionPool) NewConnection(conn net.Conn) (*Connection, error) {
+func (pool *ConnectionPool) NewConnection(conn net.Conn, solicited bool) (*Connection, error) {
 	a := conn.RemoteAddr().String()
 	var nc *Connection
 	var err error
@@ -266,7 +267,7 @@ func (pool *ConnectionPool) NewConnection(conn net.Conn) (*Connection, error) {
 		}
 		pool.connId++
 		nc = NewConnection(pool, pool.connId, conn,
-			pool.Config.ConnectionWriteQueueSize)
+			pool.Config.ConnectionWriteQueueSize, solicited)
 
 		pool.pool[nc.Id] = nc
 		pool.addresses[a] = nc
@@ -302,7 +303,7 @@ func (pool *ConnectionPool) handleConnection(conn net.Conn, solicited bool) {
 		}
 	}()
 
-	c, err := pool.NewConnection(conn)
+	c, err := pool.NewConnection(conn, solicited)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -557,7 +558,7 @@ func (pool *ConnectionPool) Size() int {
 // SendMessage sends a Message to a Connection and pushes the result onto the
 // SendResults channel.
 func (pool *ConnectionPool) SendMessage(addr string, msg Message) error {
-	if DebugPrint {
+	if pool.Config.DebugPrint {
 		logger.Debug("Send, Msg Type: %s", reflect.TypeOf(msg))
 	}
 	var msgQueueFull bool
@@ -579,24 +580,34 @@ func (pool *ConnectionPool) SendMessage(addr string, msg Message) error {
 }
 
 // BroadcastMessage sends a Message to all connections in the Pool.
-func (pool *ConnectionPool) BroadcastMessage(msg Message) {
-	if DebugPrint {
+func (pool *ConnectionPool) BroadcastMessage(msg Message) (err error) {
+	if pool.Config.DebugPrint {
 		logger.Debug("Broadcast, Msg Type: %s", reflect.TypeOf(msg))
 	}
+
 	fullWriteQueue := []string{}
 	pool.strand(func() {
+		if len(pool.pool) == 0 {
+			err = errors.New("Connection pool is empty")
+			return
+		}
+
 		for _, conn := range pool.pool {
 			select {
 			case conn.WriteQueue <- msg:
-			default:
+			case <-time.After(5 * time.Second):
 				fullWriteQueue = append(fullWriteQueue, conn.Addr())
 			}
+		}
+		if len(fullWriteQueue) == len(pool.pool) {
+			err = errors.New("There's no avaliable connection in pool")
 		}
 	})
 
 	for _, addr := range fullWriteQueue {
 		pool.Disconnect(addr, DisconnectWriteQueueFull)
 	}
+	return
 }
 
 // Unpacks incoming bytes to a Message and calls the message handler.  If
@@ -604,7 +615,7 @@ func (pool *ConnectionPool) BroadcastMessage(msg Message) {
 // first return value.  Otherwise, error will be nil and DisconnectReason will
 // be the value returned from the message handler.
 func (pool *ConnectionPool) receiveMessage(c *Connection, msg []byte) (DisconnectReason, error) {
-	m, err := convertToMessage(c.Id, msg)
+	m, err := convertToMessage(c.Id, msg, pool.Config.DebugPrint)
 	if err != nil {
 		return nil, err
 	}
