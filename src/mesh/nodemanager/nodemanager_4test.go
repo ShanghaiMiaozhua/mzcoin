@@ -3,16 +3,36 @@ package nodemanager
 //methods for testing purposes only
 
 import (
+	"strconv"
+
 	"github.com/skycoin/skycoin/src/cipher"
 	"github.com/skycoin/skycoin/src/mesh/messages"
+	"github.com/skycoin/skycoin/src/mesh/node"
 )
 
-func (self *NodeManager) CreateSequenceOfNodes(n int) (cipher.PubKey, cipher.PubKey) {
+func (self *NodeManager) CreateRandomNetwork(n int) []messages.NodeInterface {
+
+	/* This function creates a network of n nodes randomly connected to each other */
+
+	nodes := []messages.NodeInterface{}
+
+	for i := 0; i < n; i++ {
+		node, err := node.CreateAndConnectNode(messages.LOCALHOST+":"+strconv.Itoa(5000+i), messages.LOCALHOST+":5999")
+		if err != nil {
+			panic(err)
+		}
+		nodes = append(nodes, node)
+	}
+	self.rebuildRoutes()
+	return nodes
+}
+
+func (self *NodeManager) CreateSequenceOfNodes(n int) (messages.NodeInterface, messages.NodeInterface) {
 	/*
-		This function creates a network with sequentially chained n nodes like 0-1-2-3-4-5-6-7-8-9 and returns the addresses of the first and last node
+		This function creates a network with sequentially chained n nodes like 0-1-2-3-4-5-6-7-8-9 and returns the first and last node
 	*/
 
-	nodeList := self.createNodeList(n)
+	nodeList := node.CreateNodeList(n)
 	self.connectAll()
 	self.rebuildRoutes()
 	firstNode, lastNode := nodeList[0], nodeList[len(nodeList)-1]
@@ -24,8 +44,10 @@ func (self *NodeManager) CreateSequenceOfNodesAndBuildRoutes(n int) (cipher.PubK
 		This function creates a network with sequentially chained n nodes like 0-1-2-3-4-5-6-7-8-9, builds route between the first and the last nodes in a chainand returns the addresses of them, a route from the first to the last one and a back route from the last to the first one
 	*/
 
-	nodeList := self.createNodeList(n)
+	node.CreateNodeList(n)
 	self.connectAll()
+
+	nodeList := self.nodeIdList
 
 	route, backRoute, err := self.buildRoute(nodeList)
 	if err != nil {
@@ -35,8 +57,9 @@ func (self *NodeManager) CreateSequenceOfNodesAndBuildRoutes(n int) (cipher.PubK
 	return clientNode, serverNode, route, backRoute
 }
 
-func (self *NodeManager) CreateThreeRoutes() (cipher.PubKey, cipher.PubKey) {
-	nodeList := self.createNodeList(10)
+func (self *NodeManager) CreateThreeRoutes() (messages.NodeInterface, messages.NodeInterface) {
+	nodes := node.CreateNodeList(10)
+	nodeList := self.nodeIdList
 	/*
 		  1-2-3-4
 		 /	 \
@@ -58,28 +81,8 @@ func (self *NodeManager) CreateThreeRoutes() (cipher.PubKey, cipher.PubKey) {
 
 	self.rebuildRoutes()
 
-	clientNode, serverNode := nodeList[0], nodeList[9]
+	clientNode, serverNode := nodes[0], nodes[9]
 	return clientNode, serverNode
-}
-
-/* This function creates a network of n nodes randomly connected to each other */
-
-func (self *NodeManager) CreateRandomNetwork(n int) []cipher.PubKey {
-	nodes := []cipher.PubKey{}
-	for i := 0; i < n; i++ {
-		nodes = append(nodes, self.AddAndConnectStub())
-	}
-	self.rebuildRoutes()
-	return nodes
-}
-
-func (self *NodeManager) createNodeList(n int) []cipher.PubKey {
-	nodes := []cipher.PubKey{}
-	for i := 0; i < n; i++ {
-		nodeId := self.AddNewNodeStub()
-		nodes = append(nodes, nodeId)
-	}
-	return nodes
 }
 
 func (self *NodeManager) connectAll() error {
