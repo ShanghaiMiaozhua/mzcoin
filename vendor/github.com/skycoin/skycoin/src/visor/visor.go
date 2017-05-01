@@ -104,6 +104,11 @@ func NewVisorConfig() VisorConfig {
 	return c
 }
 
+// SetDB sets boltdb
+func SetDB(vc *VisorConfig, db interface{}) {
+	vc.DB = db.(*bolt.DB)
+}
+
 // Visor manages the Blockchain as both a Master and a Normal
 type Visor struct {
 	Config VisorConfig

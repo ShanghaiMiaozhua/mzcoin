@@ -20,6 +20,7 @@ import (
 	"github.com/skycoin/skycoin/src/daemon"
 	"github.com/skycoin/skycoin/src/gui"
 	"github.com/skycoin/skycoin/src/util"
+	"github.com/skycoin/skycoin/src/visor"
 	"github.com/skycoin/skycoin/src/visor/blockdb"
 	"github.com/skycoin/skycoin/src/wallet"
 )
@@ -138,6 +139,8 @@ type Config struct {
 	// Will force it to connect to this ip:port, instead of waiting for it
 	// to show up as a peer
 	ConnectTo string
+
+	DB interface{}
 }
 
 func (c *Config) register() {
@@ -440,6 +443,8 @@ func configureDaemon(c *Config) daemon.Config {
 	dc.Visor.Config.GenesisSignature = c.GenesisSignature
 	dc.Visor.Config.GenesisTimestamp = c.GenesisTimestamp
 	dc.Visor.Config.GenesisCoinVolume = GenesisCoinVolume
+	visor.SetDB(&dc.Visor.Config, c.DB)
+
 	return dc
 }
 
@@ -470,12 +475,10 @@ func Run(c *Config) {
 	// initLogging(c.LogLevel, c.ColorLog)
 
 	// start the block db.
-	blockdb.Start()
-	defer blockdb.Stop()
+	db, stop := blockdb.Open()
+	defer stop()
 
-	// start the transaction db.
-	// transactiondb.Start()
-	// defer transactiondb.Stop()
+	c.DB = db
 
 	// If the user Ctrl-C's, shutdown properly
 	quit := make(chan int)
@@ -559,10 +562,10 @@ func Run(c *Config) {
 	if c.RunMaster == true {
 		//log.Printf("BLOCK SEQ= %d \n", d.Visor.Visor.Blockchain.Head().Seq())
 		go func() {
-			for d.Visor.Visor.Blockchain.Head().Seq() < 1 {
+			for d.Visor.HeadBkSeq() < 1 {
 				time.Sleep(5 * time.Second)
 				tx := InitTransaction()
-				err, _ := d.Visor.Visor.InjectTxn(tx)
+				err, _ := d.Visor.InjectTxn(tx)
 				if err != nil {
 					log.Printf("%s\n", err)
 				}
