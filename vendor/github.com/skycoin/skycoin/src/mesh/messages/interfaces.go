@@ -5,15 +5,16 @@ import (
 )
 
 type NodeInterface interface {
-	Dial(cipher.PubKey, AppId, AppId) (Connection, error)
 	Id() cipher.PubKey
+	ConnectDirectly(string) error
+	AppTalkAddr() string
+	Shutdown()
+	TalkToViscript(uint32, uint32)
+}
+
+type NodeInTransport interface {
 	InjectTransportMessage(*InRouteMessage)
 	InjectCongestionPacket(*CongestionPacket)
-	GetTransportToNode(cipher.PubKey) (TransportInterface, error)
-	GetConnection(ConnectionId) Connection
-	ConnectedTo(cipher.PubKey) bool
-	RegisterApp(Consumer) error
-	Shutdown()
 }
 
 type TransportInterface interface {
@@ -22,18 +23,14 @@ type TransportInterface interface {
 	PacketsConfirmed() uint32
 }
 
-type Consumer interface {
-	Id() AppId
-	Consume(*AppMessage)
-	AssignConnection(Connection)
-}
-
 type Network interface {
+	Addr() string
+	TalkToViscript(uint32, uint32)
 	Shutdown()
 }
 
 type Connection interface {
+	Id() ConnectionId
 	Send([]byte) error
 	Status() uint8
-	Id() ConnectionId
 }

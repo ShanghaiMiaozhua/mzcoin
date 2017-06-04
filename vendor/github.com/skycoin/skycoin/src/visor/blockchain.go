@@ -3,7 +3,6 @@ package visor
 import (
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/skycoin/skycoin/src/cipher"
 	"github.com/skycoin/skycoin/src/coin"
@@ -48,6 +47,7 @@ type BlockTree interface {
 	GetBlockInDepth(dep uint64, filter func(hps []coin.HashPair) cipher.SHA256) *coin.Block
 }
 
+// Walker function for go through blockchain
 type Walker func(hps []coin.HashPair) cipher.SHA256
 
 // BlockListener notify the register when new block is appended to the chain
@@ -60,18 +60,33 @@ type Blockchain struct {
 	unspent     coin.UnspentPool
 	head        cipher.SHA256
 	blkListener []BlockListener
+	arbitrating bool
 }
 
-// NewBlockchain use the walker go throught the tree and update the head and unspent outputs.
-func NewBlockchain(tree BlockTree, walker Walker) *Blockchain {
+// Option represents the option when creating the blockchain
+type Option func(*Blockchain)
+
+// NewBlockchain use the walker go through the tree and update the head and unspent outputs.
+func NewBlockchain(tree BlockTree, walker Walker, ops ...Option) *Blockchain {
 	bc := &Blockchain{
 		tree:    tree,
 		walker:  walker,
 		unspent: coin.NewUnspentPool(),
 	}
 
+	for _, op := range ops {
+		op(bc)
+	}
+
 	bc.walkTree()
 	return bc
+}
+
+// Arbitrating option to change the mode
+func Arbitrating(enable bool) Option {
+	return func(bc *Blockchain) {
+		bc.arbitrating = enable
+	}
 }
 
 // GetUnspent returns the unspent output pool.
@@ -117,7 +132,7 @@ func (bc Blockchain) GetGenesisBlock() *coin.Block {
 func (bc *Blockchain) CreateGenesisBlock(genesisAddr cipher.Address, genesisCoins, timestamp uint64) coin.Block {
 	txn := coin.Transaction{}
 	txn.PushOutput(genesisAddr, genesisCoins, genesisCoins)
-	body := coin.BlockBody{coin.Transactions{txn}}
+	body := coin.BlockBody{Transactions: coin.Transactions{txn}}
 	prevHash := cipher.SHA256{}
 	head := coin.BlockHeader{
 		Time:     timestamp,
@@ -177,12 +192,12 @@ func (bc *Blockchain) Time() uint64 {
 // block; ExecuteBlock will handle verification.  Transactions must be sorted.
 func (bc Blockchain) NewBlockFromTransactions(txns coin.Transactions, currentTime uint64) (coin.Block, error) {
 	if currentTime <= bc.Time() {
-		log.Panic("Time can only move forward")
+		logger.Panic("Time can only move forward")
 	}
 	if len(txns) == 0 {
 		return coin.Block{}, errors.New("No transactions")
 	}
-	err := bc.verifyTransactions(txns)
+	txns, err := bc.verifyTransactions(txns)
 	if err != nil {
 		return coin.Block{}, err
 	}
@@ -191,11 +206,13 @@ func (bc Blockchain) NewBlockFromTransactions(txns coin.Transactions, currentTim
 	//make sure block is valid
 	if DebugLevel2 == true {
 		if err := bc.verifyBlockHeader(b); err != nil {
-			log.Panic("Impossible Error: not allowed to fail")
+			logger.Panic("Impossible Error: not allowed to fail")
 		}
-		if err := bc.verifyTransactions(b.Body.Transactions); err != nil {
-			log.Panic("Impossible Error: not allowed to fail")
+		txns, err := bc.verifyTransactions(b.Body.Transactions)
+		if err != nil {
+			logger.Panic("Impossible Error: not allowed to fail")
 		}
+		b.Body.Transactions = txns
 	}
 	return b, nil
 }
@@ -254,9 +271,11 @@ func (bc Blockchain) verifyBlock(b coin.Block) error {
 			return err
 		}
 
-		if err := bc.verifyTransactions(b.Body.Transactions); err != nil {
+		txns, err := bc.verifyTransactions(b.Body.Transactions)
+		if err != nil {
 			return err
 		}
+		b.Body.Transactions = txns
 	}
 
 	if err := bc.verifyUxHash(b); err != nil {
@@ -335,12 +354,12 @@ func (bc Blockchain) VerifyTransaction(tx coin.Transaction) error {
 	return nil
 }
 
-// GetBlockBySeq return block whose BkSeq is seq.
+// GetBlockInDepth return block whose BkSeq is seq.
 func (bc Blockchain) GetBlockInDepth(dep uint64) *coin.Block {
 	return bc.tree.GetBlockInDepth(dep, bc.walker)
 }
 
-// GetBlockRange return blocks whose seq are in the range of start and end.
+// GetBlocks return blocks whose seq are in the range of start and end.
 func (bc Blockchain) GetBlocks(start, end uint64) []coin.Block {
 	if start > end {
 		return []coin.Block{}
@@ -516,9 +535,8 @@ func (bc Blockchain) processTransactions(txns coin.Transactions, arbitrating boo
 }
 
 // verifyTransactions returns an error if any Transaction in txns is invalid
-func (bc Blockchain) verifyTransactions(txns coin.Transactions) error {
-	_, err := bc.processTransactions(txns, false)
-	return err
+func (bc Blockchain) verifyTransactions(txns coin.Transactions) (coin.Transactions, error) {
+	return bc.processTransactions(txns, bc.arbitrating)
 }
 
 // ArbitrateTransactions returns an array of Transactions with invalid ones removed from txns.
@@ -527,7 +545,7 @@ func (bc Blockchain) verifyTransactions(txns coin.Transactions) error {
 func (bc Blockchain) ArbitrateTransactions(txns coin.Transactions) coin.Transactions {
 	newtxns, err := bc.processTransactions(txns, true)
 	if err != nil {
-		log.Panicf("arbitrateTransactions failed unexpectedly: %v", err)
+		logger.Panicf("arbitrateTransactions failed unexpectedly: %v", err)
 	}
 	return newtxns
 }

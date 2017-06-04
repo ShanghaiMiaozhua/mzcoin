@@ -10,6 +10,8 @@ import (
 	"log"
 	"os"
 
+	"io"
+
 	logging "github.com/op/go-logging"
 )
 
@@ -17,13 +19,13 @@ const (
 	defaultLogFormat = "[%{module}:%{level}] %{message}"
 )
 
-// Wrapper for logging.MustGetLogger to avoid import
+// MustGetLogger wrapper for logging.MustGetLogger to avoid import
 func MustGetLogger(moduleName string) *logging.Logger {
 	// may be some stuff here (or may be not)
 	return logging.MustGetLogger(moduleName)
 }
 
-// logger configurations
+// LogConfig logger configurations
 type LogConfig struct {
 	// for internal usage
 	level logging.Level
@@ -35,12 +37,14 @@ type LogConfig struct {
 	Format string
 	// enable colors
 	Colors bool
+	// output
+	Output io.Writer
 }
 
 // TODO:
 // DefaultLogConfig vs (DevLogConfig + ProdLogConfig) ?
 
-// Default development config for logging
+// DevLogConfig default development config for logging
 func DevLogConfig(modules []string) *LogConfig {
 	return &LogConfig{
 		level:   logging.DEBUG, // int
@@ -48,10 +52,11 @@ func DevLogConfig(modules []string) *LogConfig {
 		Modules: modules,
 		Format:  defaultLogFormat,
 		Colors:  true,
+		Output:  os.Stdout,
 	}
 }
 
-// Default production config for logging
+// ProdLogConfig Default production config for logging
 func ProdLogConfig(modules []string) *LogConfig {
 	return &LogConfig{
 		level:   logging.ERROR,
@@ -59,6 +64,7 @@ func ProdLogConfig(modules []string) *LogConfig {
 		Modules: modules,
 		Format:  defaultLogFormat,
 		Colors:  false,
+		Output:  os.Stdout,
 	}
 }
 
@@ -72,7 +78,7 @@ func (l *LogConfig) initLevel() {
 	l.level = level
 }
 
-// initialize logging using this LogConfig;
+// InitLogger initialize logging using this LogConfig;
 // it panics if l.Format is invalid or l.Level is invalid
 func (l *LogConfig) InitLogger() {
 	l.initLevel()
@@ -82,7 +88,7 @@ func (l *LogConfig) InitLogger() {
 	for _, s := range l.Modules {
 		logging.SetLevel(l.level, s)
 	}
-	stdout := logging.NewLogBackend(os.Stdout, "", 0)
+	stdout := logging.NewLogBackend(l.Output, "", 0)
 	stdout.Color = l.Colors
 	logging.SetBackend(stdout)
 }

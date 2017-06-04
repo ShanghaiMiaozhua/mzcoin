@@ -6,11 +6,6 @@ import (
 	"time"
 )
 
-const (
-	DEBUG = iota
-	INFO
-)
-
 type ConfigStruct struct {
 	SendInterval      time.Duration
 	SendIntervalNum   uint32
@@ -30,9 +25,6 @@ type ConfigStruct struct {
 	LogLevel          uint8
 	MaxBuffer         uint64
 	MsgSrvTimeout     uint32
-	MsgSrvHost        string
-	MsgSrvPort        int
-	MsgNodePort       int
 }
 
 type ConfigFromFile struct {
@@ -63,34 +55,28 @@ type ConfigFromFile struct {
 	}
 	MsgSrv struct {
 		MsgSrvTimeout uint32
-		MsgSrvHost    string
-		MsgSrvPort    int
-		MsgNodePort   int
 	}
 }
 
 var config = &ConfigStruct{ // default values
 	LogLevel:          INFO,
 	StartPort:         6000,
-	AppTimeout:        1000000,
+	AppTimeout:        10000,
 	VPNSubnet:         "192.168.11.",
 	ProxyPacketSize:   16384,
-	ProxyTimeout:      300000 * time.Millisecond,
-	TransportTimeout:  100000,
+	ProxyTimeout:      10000 * time.Millisecond,
+	TransportTimeout:  500,
 	RetransmitLimit:   10,
 	SimulateDelay:     false,
-	MaxSimulatedDelay: 500,
-	ConnectionTimeout: 1000000,
+	MaxSimulatedDelay: 300,
+	ConnectionTimeout: 5000,
 	MaxPacketSize:     16384,
 	MaxBuffer:         8192,
 	SendInterval:      1500 * time.Microsecond,
 	SendIntervalNum:   1500,
 	TimeUnit:          10 * time.Microsecond,
 	TimeUnitNum:       10,
-	MsgSrvTimeout:     1000,
-	MsgSrvHost:        "127.0.0.1",
-	MsgSrvPort:        5999,
-	MsgNodePort:       5998,
+	MsgSrvTimeout:     500,
 }
 
 func init() {
@@ -98,8 +84,7 @@ func init() {
 	err := gcfg.ReadFileInto(cfgFromFile, "/etc/meshnet.cfg")
 	if err != nil {
 		fmt.Println("Cannot read settings from file, applying defaults. Error:", err)
-		panic(err)
-		//return
+		return
 	}
 
 	if cfgFromFile.General.LogLevel == "DEBUG" {
@@ -129,29 +114,8 @@ func init() {
 	config.ProxyTimeout = time.Duration(cfgFromFile.Proxy.ProxyTimeout) * time.Millisecond
 
 	config.MsgSrvTimeout = cfgFromFile.MsgSrv.MsgSrvTimeout
-	config.MsgSrvHost = cfgFromFile.MsgSrv.MsgSrvHost
-	config.MsgSrvPort = cfgFromFile.MsgSrv.MsgSrvPort
-	config.MsgNodePort = cfgFromFile.MsgSrv.MsgNodePort
 }
 
 func GetConfig() *ConfigStruct {
 	return config
-}
-
-func SetLogLevel(loglevel uint8) {
-	if loglevel == DEBUG || loglevel == INFO {
-		config.LogLevel = loglevel
-	}
-}
-
-func SetDebugLogLevel() {
-	SetLogLevel(DEBUG)
-}
-
-func SetInfoLogLevel() {
-	SetLogLevel(INFO)
-}
-
-func IsDebug() bool {
-	return config.LogLevel == DEBUG
 }

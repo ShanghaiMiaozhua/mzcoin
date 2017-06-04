@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -20,8 +21,6 @@ import (
 	"github.com/skycoin/skycoin/src/daemon"
 	"github.com/skycoin/skycoin/src/gui"
 	"github.com/skycoin/skycoin/src/util"
-	"github.com/skycoin/skycoin/src/visor"
-	"github.com/skycoin/skycoin/src/visor/blockdb"
 	"github.com/skycoin/skycoin/src/wallet"
 )
 
@@ -30,6 +29,7 @@ import (
 //"github.com/wudaofan/mzcoin/src/wallet"
 
 var (
+	Version    = "0.0.0"
 	logger     = util.MustGetLogger("main")
 	logFormat  = "[mzcoin.%{module}:%{level}] %{message}"
 	logModules = []string{
@@ -140,7 +140,10 @@ type Config struct {
 	// to show up as a peer
 	ConnectTo string
 
-	DB interface{}
+	DBPath       string
+	Arbitrating  bool
+	RPCThreadNum uint // rpc number
+	Logtofile    bool
 }
 
 func (c *Config) register() {
@@ -195,6 +198,7 @@ func (c *Config) register() {
 		"Choices are: debug, info, notice, warning, error, critical")
 	flag.BoolVar(&c.ColorLog, "color-log", c.ColorLog,
 		"Add terminal colors to log output")
+	flag.BoolVar(&c.Logtofile, "logtofile", false, "log to file")
 	flag.StringVar(&c.GUIDirectory, "gui-dir", c.GUIDirectory,
 		"static content directory for the html gui")
 
@@ -221,6 +225,7 @@ func (c *Config) register() {
 		c.OutgoingConnectionsRate, "How often to make an outgoing connection")
 	flag.BoolVar(&c.LocalhostOnly, "localhost-only", c.LocalhostOnly,
 		"Run on localhost and only connect to localhost peers")
+	flag.BoolVar(&c.Arbitrating, "arbitrating", c.Arbitrating, "Run node in arbitrating mode")
 	//flag.StringVar(&c.AddressVersion, "address-version", c.AddressVersion,
 	//	"Wallet address version. Options are 'test' and 'main'")
 }
@@ -259,6 +264,7 @@ var devConfig Config = Config{
 	RPCInterface:     true,
 	RPCInterfacePort: 7430,
 	RPCInterfaceAddr: "127.0.0.1",
+	RPCThreadNum:     5,
 
 	LaunchBrowser: true,
 	// Data directory holds app data -- defaults to ~/.skycoin
@@ -340,6 +346,9 @@ func (c *Config) postProcess() {
 	panicIfError(err, "Invalid -log-level %s", c.logLevel)
 	c.LogLevel = ll
 
+	if c.DBPath == "" {
+		c.DBPath = filepath.Join(c.DataDirectory, "data.db")
+	}
 }
 
 func panicIfError(err error, msg string, args ...interface{}) {
@@ -443,11 +452,13 @@ func configureDaemon(c *Config) daemon.Config {
 	dc.Visor.Config.GenesisSignature = c.GenesisSignature
 	dc.Visor.Config.GenesisTimestamp = c.GenesisTimestamp
 	dc.Visor.Config.GenesisCoinVolume = GenesisCoinVolume
-	visor.SetDB(&dc.Visor.Config, c.DB)
+	dc.Visor.Config.DBPath = c.DBPath
+	dc.Visor.Config.Arbitrating = c.Arbitrating
 
 	return dc
 }
 
+// Run starts the mzcoin node
 func Run(c *Config) {
 
 	c.GUIDirectory = util.ResolveResourceDirectory(c.GUIDirectory)
@@ -470,15 +481,24 @@ func Run(c *Config) {
 	logCfg := util.DevLogConfig(logModules)
 	logCfg.Format = logFormat
 	logCfg.Colors = c.ColorLog
+
+	if c.Logtofile {
+		// open log file
+		// logfile in ~/.skycoin/$time-$version.log
+		var logfmt = "2006-01-02-030405"
+		logfile := filepath.Join(c.DataDirectory, fmt.Sprintf("%s-v%s.log", time.Now().Format(logfmt), Version))
+		fd, err := os.OpenFile(logfile, os.O_RDWR|os.O_CREATE, 0666)
+		if err != nil {
+			panic(err)
+		}
+		defer fd.Close()
+		out := io.MultiWriter(os.Stdout, fd)
+		logCfg.Output = out
+	}
+
 	logCfg.InitLogger()
 
 	// initLogging(c.LogLevel, c.ColorLog)
-
-	// start the block db.
-	db, stop := blockdb.Open()
-	defer stop()
-
-	c.DB = db
 
 	// If the user Ctrl-C's, shutdown properly
 	quit := make(chan int)
@@ -500,7 +520,7 @@ func Run(c *Config) {
 		go webrpc.Start(
 			fmt.Sprintf("%v:%v", c.RPCInterfaceAddr, c.RPCInterfacePort),
 			webrpc.ChanBuffSize(1000),
-			webrpc.ThreadNum(1000),
+			webrpc.ThreadNum(c.RPCThreadNum),
 			webrpc.Gateway(d.Gateway),
 			webrpc.Quit(closingC))
 	}
@@ -565,9 +585,9 @@ func Run(c *Config) {
 			for d.Visor.HeadBkSeq() < 1 {
 				time.Sleep(5 * time.Second)
 				tx := InitTransaction()
-				err, _ := d.Visor.InjectTxn(tx)
+				_, err := d.Visor.InjectTxn(tx)
 				if err != nil {
-					log.Printf("%s\n", err)
+					logger.Error("%s\n", err)
 				}
 			}
 		}()

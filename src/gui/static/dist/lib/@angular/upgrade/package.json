@@ -2,11 +2,7 @@
   "_args": [
     [
       "@angular/upgrade@2.0.0-rc.1",
-<<<<<<< HEAD
       "/Users/heaven/src/github.com/ShanghaiKuaibei/mzcoin/src/gui/static"
-=======
-      "/Users/heaven/src/github.com/skycoin/skycoin/src/gui/static"
->>>>>>> 91acd9b9b3095a813d8313c153da89337cfe41fd
     ]
   ],
   "_from": "@angular/upgrade@2.0.0-rc.1",
@@ -40,11 +36,7 @@
   "_shasum": "50278e5e605b9629e6130db523005951695149ee",
   "_shrinkwrap": null,
   "_spec": "@angular/upgrade@2.0.0-rc.1",
-<<<<<<< HEAD
   "_where": "/Users/heaven/src/github.com/ShanghaiKuaibei/mzcoin/src/gui/static",
-=======
-  "_where": "/Users/heaven/src/github.com/skycoin/skycoin/src/gui/static",
->>>>>>> 91acd9b9b3095a813d8313c153da89337cfe41fd
   "author": {
     "name": "angular"
   },

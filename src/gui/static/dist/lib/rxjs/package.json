@@ -2,11 +2,7 @@
   "_args": [
     [
       "rxjs@5.0.0-beta.6",
-<<<<<<< HEAD
       "/Users/heaven/src/github.com/ShanghaiKuaibei/mzcoin/src/gui/static"
-=======
-      "/Users/heaven/src/github.com/skycoin/skycoin/src/gui/static"
->>>>>>> 91acd9b9b3095a813d8313c153da89337cfe41fd
     ]
   ],
   "_from": "rxjs@5.0.0-beta.6",
@@ -40,11 +36,7 @@
   "_shasum": "cb6dc46d6ddfedfeefc9b15dafd09c34a4370d23",
   "_shrinkwrap": null,
   "_spec": "rxjs@5.0.0-beta.6",
-<<<<<<< HEAD
   "_where": "/Users/heaven/src/github.com/ShanghaiKuaibei/mzcoin/src/gui/static",
-=======
-  "_where": "/Users/heaven/src/github.com/skycoin/skycoin/src/gui/static",
->>>>>>> 91acd9b9b3095a813d8313c153da89337cfe41fd
   "author": {
     "email": "blesh@netflix.com",
     "name": "Ben Lesh"

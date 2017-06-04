@@ -12,7 +12,6 @@ import (
 
 func main() {
 
-	//messages.SetDebugLogLevel()
 	messages.SetInfoLogLevel()
 
 	var (
@@ -43,27 +42,27 @@ func main() {
 		return
 	}
 
-	meshnet := network.NewNetwork()
+	meshnet, _ := network.NewNetwork("mesh.network", "127.0.0.1:5999")
 	defer meshnet.Shutdown()
 
-	clientNode, serverNode := meshnet.CreateSequenceOfNodes(hops + 1)
+	clientNode, serverNode := meshnet.CreateSequenceOfNodes(hops+1, 15000)
 
 	serverId := messages.MakeAppId("vpn_server")
 	clientId := messages.MakeAppId("vpn_client")
 
-	server, err := app.NewVPNServer(serverId, serverNode)
+	server, err := app.NewVPNServer(serverId, serverNode.AppTalkAddr())
 	if err != nil {
 		panic(err)
 	}
 	defer server.Shutdown()
 
-	client, err := app.NewVPNClient(clientId, clientNode, "0.0.0.0:4321")
+	client, err := app.NewVPNClient(clientId, clientNode.AppTalkAddr(), "0.0.0.0:4321")
 	if err != nil {
 		panic(err)
 	}
 	defer client.Shutdown()
 
-	err = client.Connect(serverId, serverNode.Id())
+	err = client.Connect(serverId, serverNode.Id().Hex())
 	if err != nil {
 		panic(err)
 	}

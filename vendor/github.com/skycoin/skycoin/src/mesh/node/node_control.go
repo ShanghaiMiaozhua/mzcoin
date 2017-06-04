@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skycoin/skycoin/src/cipher"
 	"github.com/skycoin/skycoin/src/mesh/messages"
 )
 
@@ -80,14 +79,39 @@ func (self *Node) sendAckToServer(sequence uint32, ack *messages.CommonCMAck) er
 	return self.sendToServer(sequence, ackS)
 }
 
-func (self *Node) sendRegisterNodeToServer(host string, connect bool) error {
-	msg := messages.RegisterNodeCM{host, connect}
+func (self *Node) sendRegisterNodeToServer(hostname, host string, connect bool) error {
+	msg := messages.RegisterNodeCM{hostname, host, connect}
 	msgS := messages.Serialize(messages.MsgRegisterNodeCM, msg)
 	err := self.sendMessageToServer(msgS)
 	return err
 }
 
-func (self *Node) sendConnectToServer(nodeToId cipher.PubKey, appIdFrom, appIdTo messages.AppId) (messages.ConnectionId, error) {
+func (self *Node) sendConnectDirectlyToServer(nodeToId string) error {
+	responseChannel := make(chan bool)
+
+	self.lock.Lock()
+	connectSequence := self.connectResponseSequence
+	self.connectResponseSequence++
+	self.connectResponseChannels[connectSequence] = responseChannel
+	self.lock.Unlock()
+
+	msg := messages.ConnectDirectlyCM{connectSequence, self.id, nodeToId}
+	msgS := messages.Serialize(messages.MsgConnectDirectlyCM, msg)
+
+	err := self.sendMessageToServer(msgS)
+	if err != nil {
+		return err
+	}
+
+	select {
+	case <-responseChannel:
+		return nil
+	case <-time.After(CONTROL_TIMEOUT):
+		return messages.ERR_MSG_SRV_TIMEOUT
+	}
+}
+
+func (self *Node) sendConnectWithRouteToServer(nodeToId string, appIdFrom, appIdTo messages.AppId) (messages.ConnectionId, error) {
 	responseChannel := make(chan messages.ConnectionId)
 
 	self.lock.Lock()
@@ -96,8 +120,8 @@ func (self *Node) sendConnectToServer(nodeToId cipher.PubKey, appIdFrom, appIdTo
 	self.connectionResponseChannels[connSequence] = responseChannel
 	self.lock.Unlock()
 
-	msg := messages.ConnectCM{connSequence, appIdFrom, appIdTo, self.id, nodeToId}
-	msgS := messages.Serialize(messages.MsgConnectCM, msg)
+	msg := messages.ConnectWithRouteCM{connSequence, appIdFrom, appIdTo, self.id, nodeToId}
+	msgS := messages.Serialize(messages.MsgConnectWithRouteCM, msg)
 
 	err := self.sendMessageToServer(msgS)
 	if err != nil {
@@ -137,7 +161,7 @@ func (self *Node) sendMessageToServer(msg []byte) error {
 }
 
 func (self *Node) sendToServer(sequence uint32, msg []byte) error {
-	if self.nmAddr == nil {
+	if len(self.serverAddrs) == 0 {
 		return nil
 	}
 
@@ -147,11 +171,11 @@ func (self *Node) sendToServer(sequence uint32, msg []byte) error {
 		msg,
 	}
 	inControlS := messages.Serialize(messages.MsgInControlMessage, inControl)
-	_, err := self.controlConn.WriteTo(inControlS, self.nmAddr)
+	_, err := self.controlConn.WriteTo(inControlS, self.serverAddrs[0])
 	return err
 }
 
-func (self *Node) openUDPforCM(port int, nmAddrStr string) (*net.UDPConn, error) {
+func (self *Node) openUDPforCM(port int) (*net.UDPConn, error) {
 	host := net.ParseIP(messages.LOCALHOST)
 	connAddr := &net.UDPAddr{IP: host, Port: port}
 
@@ -160,7 +184,12 @@ func (self *Node) openUDPforCM(port int, nmAddrStr string) (*net.UDPConn, error)
 		return nil, err
 	}
 
-	nmData := strings.Split(nmAddrStr, ":")
+	return conn, nil
+}
+
+func (self *Node) addServer(serverAddrStr string) {
+
+	nmData := strings.Split(serverAddrStr, ":")
 	nmHostStr := nmData[0]
 	nmPort := 5999
 	if len(nmData) > 1 {
@@ -170,10 +199,8 @@ func (self *Node) openUDPforCM(port int, nmAddrStr string) (*net.UDPConn, error)
 		}
 	}
 	nmHost := net.ParseIP(nmHostStr)
-	nmAddr := &net.UDPAddr{IP: nmHost, Port: nmPort}
-	self.nmAddr = nmAddr
-
-	return conn, nil
+	serverAddr := &net.UDPAddr{IP: nmHost, Port: nmPort}
+	self.serverAddrs = append(self.serverAddrs, serverAddr)
 }
 
 func (self *Node) receiveControlMessages() {

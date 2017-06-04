@@ -12,7 +12,6 @@ import (
 
 func main() {
 
-	//messages.SetDebugLogLevel()
 	messages.SetInfoLogLevel()
 
 	var (
@@ -43,27 +42,27 @@ func main() {
 		return
 	}
 
-	meshnet := network.NewNetwork()
+	meshnet, _ := network.NewNetwork("mesh.network", "127.0.0.1:5999")
 	defer meshnet.Shutdown()
 
-	clientNode, serverNode := meshnet.CreateSequenceOfNodes(hops + 1)
+	clientNode, serverNode := meshnet.CreateSequenceOfNodes(hops+1, 15000)
 
 	socksServerId := messages.MakeAppId("socksServer0")
 	socksClientId := messages.MakeAppId("socksClient0")
 
-	socksServer, err := app.NewSocksServer(socksServerId, serverNode, "0.0.0.0:8001")
+	socksServer, err := app.NewSocksServer(socksServerId, serverNode.AppTalkAddr(), "0.0.0.0:8001")
 	if err != nil {
 		panic(err)
 	}
 	defer socksServer.Shutdown()
 
-	socksClient, err := app.NewSocksClient(socksClientId, clientNode, "0.0.0.0:8000")
+	socksClient, err := app.NewSocksClient(socksClientId, clientNode.AppTalkAddr(), "0.0.0.0:8000")
 	if err != nil {
 		panic(err)
 	}
 	defer socksClient.Shutdown()
 
-	err = socksClient.Connect(socksServerId, serverNode.Id())
+	err = socksClient.Connect(socksServerId, serverNode.Id().Hex())
 	if err != nil {
 		panic(err)
 	}
@@ -73,19 +72,19 @@ func main() {
 	vpnServerId := messages.MakeAppId("vpn_server")
 	vpnClientId := messages.MakeAppId("vpn_client")
 
-	vpnServer, err := app.NewVPNServer(vpnServerId, serverNode)
+	vpnServer, err := app.NewVPNServer(vpnServerId, serverNode.AppTalkAddr())
 	if err != nil {
 		panic(err)
 	}
 	defer vpnServer.Shutdown()
 
-	vpnClient, err := app.NewVPNClient(vpnClientId, clientNode, "0.0.0.0:4321")
+	vpnClient, err := app.NewVPNClient(vpnClientId, clientNode.AppTalkAddr(), "0.0.0.0:4321")
 	if err != nil {
 		panic(err)
 	}
 	defer vpnClient.Shutdown()
 
-	err = vpnClient.Connect(vpnServerId, serverNode.Id())
+	err = vpnClient.Connect(vpnServerId, serverNode.Id().Hex())
 	if err != nil {
 		panic(err)
 	}
