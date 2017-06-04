@@ -238,6 +238,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/songgao/water",
+			"repository": "https://github.com/songgao/water",
+			"vcs": "git",
+			"revision": "66c5b2f72cb8d40d16f342324f2bb58e11d4b93c",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/stretchr/testify",
 			"repository": "https://github.com/stretchr/testify",
 			"vcs": "git",
@@ -307,6 +315,15 @@
 			"notests": true
 		},
 		{
+			"importpath": "golang.org/x/net/proxy",
+			"repository": "https://go.googlesource.com/net",
+			"vcs": "git",
+			"revision": "feeb485667d1fdabe727840fe00adc22431bc86e",
+			"branch": "master",
+			"path": "/proxy",
+			"notests": true
+		},
+		{
 			"importpath": "golang.org/x/sys/unix",
 			"repository": "https://go.googlesource.com/sys",
 			"vcs": "git",
@@ -316,10 +333,35 @@
 			"notests": true
 		},
 		{
+			"importpath": "golang.org/x/sys/windows",
+			"repository": "https://go.googlesource.com/sys",
+			"vcs": "git",
+			"revision": "9ccfe848b9db8435a24c424abbc07a921adf1df5",
+			"branch": "master",
+			"path": "windows",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/gcfg.v1",
+			"repository": "https://gopkg.in/gcfg.v1",
+			"vcs": "git",
+			"revision": "27e4946190b4a327b539185f2b5b1f7c84730728",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "gopkg.in/urfave/cli.v1",
 			"repository": "https://gopkg.in/urfave/cli.v1",
 			"vcs": "git",
 			"revision": "0bdeddeeb0f650497d603c4ad7b20cfe685682f6",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/warnings.v0",
+			"repository": "https://gopkg.in/warnings.v0",
+			"vcs": "git",
+			"revision": "8a331561fe74dadba6edfc59f3be66c22c3b065d",
 			"branch": "master",
 			"notests": true
 		},

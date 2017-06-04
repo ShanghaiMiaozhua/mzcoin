@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -13,7 +14,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/boltdb/bolt"
 	logging "github.com/op/go-logging"
 	"github.com/skycoin/skycoin/src/api/webrpc"
 	"github.com/skycoin/skycoin/src/cipher"
@@ -21,14 +21,11 @@ import (
 	"github.com/skycoin/skycoin/src/daemon"
 	"github.com/skycoin/skycoin/src/gui"
 	"github.com/skycoin/skycoin/src/util"
-	"github.com/skycoin/skycoin/src/visor/blockdb"
 )
 
-//"github.com/skycoin/skycoin/src/cli"
-
-//"github.com/skycoin/skycoin/src/wallet"
-
 var (
+	// Version node version which will be set when build wallet by LDFLAGS
+	Version    = "0.0.0"
 	logger     = util.MustGetLogger("main")
 	logFormat  = "[skycoin.%{module}:%{level}] %{message}"
 	logModules = []string{
@@ -44,18 +41,21 @@ var (
 		"webrpc",
 	}
 
-	//TODO: Move time and other genesis block settigns from visor, to here
+	// GenesisSignatureStr hex string of genesis signature
 	GenesisSignatureStr = "eb10468d10054d15f2b6f8946cd46797779aa20a7617ceb4be884189f219bc9a164e56a5b9f7bec392a804ff3740210348d73db77a37adb542a8e08d429ac92700"
-	GenesisAddressStr   = "2jBbGxZRGoQG1mqhPBnXnLTxK6oxsTf8os6"
+	// GenesisAddressStr genesis address string
+	GenesisAddressStr = "2jBbGxZRGoQG1mqhPBnXnLTxK6oxsTf8os6"
+	// BlockchainPubkeyStr pubic key string
 	BlockchainPubkeyStr = "0328c576d3f420e7682058a981173a4b374c7cc5ff55bf394d3cf57059bbe6456a"
+	// BlockchainSeckeyStr empty private key string
 	BlockchainSeckeyStr = ""
 
-	GenesisTimestamp  uint64 = 1426562704
+	// GenesisTimestamp genesis block create unix time
+	GenesisTimestamp uint64 = 1426562704
+	// GenesisCoinVolume represents the coin capacity
 	GenesisCoinVolume uint64 = 100e12
 
-	//GenesisTimestamp: 1426562704,
-	//GenesisCoinVolume: 100e12, //100e6 * 10e6
-
+	// DefaultConnections the default trust node addresses
 	DefaultConnections = []string{
 		"118.178.135.93:6000",
 		"47.88.33.156:6000",
@@ -66,6 +66,7 @@ var (
 
 // Command line interface arguments
 
+// Config records the node's configuration
 type Config struct {
 	// Disable peer exchange
 	DisablePEX bool
@@ -141,7 +142,10 @@ type Config struct {
 	// to show up as a peer
 	ConnectTo string
 
-	DB *bolt.DB
+	DBPath       string
+	Arbitrating  bool
+	RPCThreadNum uint // rpc number
+	Logtofile    bool
 }
 
 func (c *Config) register() {
@@ -177,6 +181,7 @@ func (c *Config) register() {
 		"port to serve rpc interface on")
 	flag.StringVar(&c.RPCInterfaceAddr, "rpc-interface-addr", c.RPCInterfaceAddr,
 		"addr to serve rpc interface on")
+	flag.UintVar(&c.RPCThreadNum, "rpc-thread-num", 5, "rpc thread number")
 
 	flag.BoolVar(&c.LaunchBrowser, "launch-browser", c.LaunchBrowser,
 		"launch system default webbrowser at client startup")
@@ -196,6 +201,7 @@ func (c *Config) register() {
 		"Choices are: debug, info, notice, warning, error, critical")
 	flag.BoolVar(&c.ColorLog, "color-log", c.ColorLog,
 		"Add terminal colors to log output")
+	flag.BoolVar(&c.Logtofile, "logtofile", false, "log to file")
 	flag.StringVar(&c.GUIDirectory, "gui-dir", c.GUIDirectory,
 		"static content directory for the html gui")
 
@@ -222,13 +228,14 @@ func (c *Config) register() {
 		c.OutgoingConnectionsRate, "How often to make an outgoing connection")
 	flag.BoolVar(&c.LocalhostOnly, "localhost-only", c.LocalhostOnly,
 		"Run on localhost and only connect to localhost peers")
+	flag.BoolVar(&c.Arbitrating, "arbitrating", c.Arbitrating, "Run node in arbitrating mode")
 	//flag.StringVar(&c.AddressVersion, "address-version", c.AddressVersion,
 	//	"Wallet address version. Options are 'test' and 'main'")
 }
 
-var devConfig Config = Config{
+var devConfig = Config{
 	// Disable peer exchange
-	DisablePEX: true,
+	DisablePEX: false,
 	// Don't make any outgoing connections
 	DisableOutgoingConnections: false,
 	// Don't allowing incoming connections
@@ -260,6 +267,7 @@ var devConfig Config = Config{
 	RPCInterface:     true,
 	RPCInterfacePort: 6430,
 	RPCInterfaceAddr: "127.0.0.1",
+	RPCThreadNum:     5,
 
 	LaunchBrowser: true,
 	// Data directory holds app data -- defaults to ~/.skycoin
@@ -296,6 +304,7 @@ var devConfig Config = Config{
 	ConnectTo: "",
 }
 
+// Parse prepare the config
 func (c *Config) Parse() {
 	c.register()
 	flag.Parse()
@@ -341,6 +350,9 @@ func (c *Config) postProcess() {
 	panicIfError(err, "Invalid -log-level %s", c.logLevel)
 	c.LogLevel = ll
 
+	if c.DBPath == "" {
+		c.DBPath = filepath.Join(c.DataDirectory, "data.db")
+	}
 }
 
 func panicIfError(err error, msg string, args ...interface{}) {
@@ -444,10 +456,12 @@ func configureDaemon(c *Config) daemon.Config {
 	dc.Visor.Config.GenesisSignature = c.GenesisSignature
 	dc.Visor.Config.GenesisTimestamp = c.GenesisTimestamp
 	dc.Visor.Config.GenesisCoinVolume = GenesisCoinVolume
-	dc.Visor.Config.DB = c.DB
+	dc.Visor.Config.DBPath = c.DBPath
+	dc.Visor.Config.Arbitrating = c.Arbitrating
 	return dc
 }
 
+// Run starts the skycoin node
 func Run(c *Config) {
 
 	c.GUIDirectory = util.ResolveResourceDirectory(c.GUIDirectory)
@@ -470,19 +484,23 @@ func Run(c *Config) {
 	logCfg := util.DevLogConfig(logModules)
 	logCfg.Format = logFormat
 	logCfg.Colors = c.ColorLog
+	var logfile string
+
+	if c.Logtofile {
+		// open log file
+		// logfile in ~/.skycoin/$time-$version.log
+		var logfmt = "2006-01-02-030405"
+		logfile = filepath.Join(c.DataDirectory, fmt.Sprintf("%s-v%s.log", time.Now().Format(logfmt), Version))
+		fd, err := os.OpenFile(logfile, os.O_RDWR|os.O_CREATE, 0666)
+		if err != nil {
+			panic(err)
+		}
+		defer fd.Close()
+		out := io.MultiWriter(os.Stdout, fd)
+		logCfg.Output = out
+	}
+
 	logCfg.InitLogger()
-
-	// initLogging(c.LogLevel, c.ColorLog)
-
-	// start the block db.
-	db, stop := blockdb.Open()
-	defer stop()
-
-	c.DB = db
-
-	// start the transaction db.
-	// transactiondb.Start()
-	// defer transactiondb.Stop()
 
 	// If the user Ctrl-C's, shutdown properly
 	quit := make(chan int)
@@ -504,7 +522,7 @@ func Run(c *Config) {
 		go webrpc.Start(
 			fmt.Sprintf("%v:%v", c.RPCInterfaceAddr, c.RPCInterfacePort),
 			webrpc.ChanBuffSize(1000),
-			webrpc.ThreadNum(1000),
+			webrpc.ThreadNum(c.RPCThreadNum),
 			webrpc.Gateway(d.Gateway),
 			webrpc.Quit(closingC))
 	}
@@ -512,7 +530,7 @@ func Run(c *Config) {
 	// Debug only - forces connection on start.  Violates thread safety.
 	if c.ConnectTo != "" {
 		if err := d.Pool.Pool.Connect(c.ConnectTo); err != nil {
-			log.Panic(err)
+			logger.Panic(err)
 		}
 	}
 
@@ -591,24 +609,12 @@ func Run(c *Config) {
 }
 
 func main() {
-
-	/*
-		skycoin.Run(&cli.DaemonArgs)
-	*/
-
-	/*
-	   skycoin.Run(&cli.ClientArgs)
-	   stop := make(chan int)
-	   <-stop
-	*/
-
-	//skycoin.Run(&cli.DevArgs)
 	devConfig.Parse()
 	Run(&devConfig)
 }
 
-//addresses for storage of coins
-var AddrList []string = []string{
+// AddrList for storage of coins
+var AddrList = []string{
 	"R6aHqKWSQfvpdo2fGSrq4F1RYXkBWR9HHJ",
 	"2EYM4WFHe4Dgz6kjAdUkM6Etep7ruz2ia6h",
 	"25aGyzypSA3T9K6rgPUv1ouR13efNPtWP5m",
@@ -711,6 +717,7 @@ var AddrList []string = []string{
 	"ejJjiCwp86ykmFr5iTJ8LxQXJ2wJPTYmkm",
 }
 
+// InitTransaction creates the initialize transaction
 func InitTransaction() coin.Transaction {
 	var tx coin.Transaction
 

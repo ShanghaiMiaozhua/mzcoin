@@ -18,6 +18,7 @@ import (
 //calls ticket methods on the transport factory
 type NodeManager struct {
 	nodeIdList           []cipher.PubKey
+	ctrlAddr             string
 	nodeList             map[cipher.PubKey]*NodeRecord
 	transportFactoryList []*TransportFactory
 	nodesByTransport     map[messages.TransportId]cipher.PubKey
@@ -25,25 +26,71 @@ type NodeManager struct {
 	portDelivery         *PortDelivery
 	msgServer            *MsgServer
 	lock                 *sync.Mutex
+	viscriptServer       *NMViscriptServer
+	dnsServer            *DNSServer
 }
 
 var config = messages.GetConfig()
 
-func NewNetwork() *NodeManager {
-	nm := newNodeManager()
-	return nm
+func NewNetwork(domain, ctrlAddr string) (*NodeManager, error) {
+	nm, err := newNodeManager(domain, ctrlAddr)
+	return nm, err
 }
 
-func (self *NodeManager) addNewNode(host string) (cipher.PubKey, error) { //**** will be called by messaging server, response will be the reply
-	nodeToAdd, err := self.newNode(host)
+func newNodeManager(domain, ctrlAddr string) (*NodeManager, error) {
+	nm := new(NodeManager)
+
+	dnsServer, err := newDNSServer(domain)
+	if err != nil {
+		return nil, err
+	}
+	nm.dnsServer = dnsServer
+
+	nm.ctrlAddr = ctrlAddr
+	nm.nodeList = make(map[cipher.PubKey]*NodeRecord)
+	nm.transportFactoryList = []*TransportFactory{}
+	nm.routeGraph = newGraph()
+	nm.portDelivery = newPortDelivery()
+
+	msgServer, err := newMsgServer(nm)
+	if err != nil {
+		panic(err)
+		return nil, err
+	}
+	nm.msgServer = msgServer
+
+	nm.lock = &sync.Mutex{}
+
+	return nm, nil
+}
+
+func (self *NodeManager) Tick() {
+}
+
+func (self *NodeManager) Shutdown() {
+	for _, n := range self.nodeList {
+		n.shutdown()
+	}
+
+	self.msgServer.shutdown()
+
+	if self.viscriptServer != nil {
+		self.viscriptServer.Shutdown()
+	}
+
+	time.Sleep(1 * time.Millisecond)
+}
+
+func (self *NodeManager) addNewNode(host, hostname string) (cipher.PubKey, error) { //**** will be called by messaging server, response will be the reply
+	nodeToAdd, err := self.newNode(host, hostname)
 	if err != nil {
 		return cipher.PubKey{}, err
 	}
 	return nodeToAdd.id, nil
 }
 
-func (self *NodeManager) addAndConnect(host string) (cipher.PubKey, error) { //**** will be called by messaging server, response will be the reply
-	id, err := self.addNewNode(host)
+func (self *NodeManager) addAndConnect(host, hostname string) (cipher.PubKey, error) { //**** will be called by messaging server, response will be the reply
+	id, err := self.addNewNode(host, hostname)
 	if err != nil {
 		return cipher.PubKey{}, err
 	}
@@ -53,7 +100,7 @@ func (self *NodeManager) addAndConnect(host string) (cipher.PubKey, error) { //*
 	return id, nil
 }
 
-func (self *NodeManager) ConnectNodeToNode(idA, idB cipher.PubKey) (*TransportFactory, error) {
+func (self *NodeManager) connectNodeToNode(idA, idB cipher.PubKey) (*TransportFactory, error) {
 
 	if idA == idB {
 		return nil, messages.ERR_CONNECTED_TO_ITSELF
@@ -68,15 +115,15 @@ func (self *NodeManager) ConnectNodeToNode(idA, idB cipher.PubKey) (*TransportFa
 		return nil, err
 	}
 
-	if nodeA.ConnectedTo(nodeB) || nodeB.ConnectedTo(nodeA) {
+	if nodeA.connectedTo(nodeB) || nodeB.connectedTo(nodeA) {
 		return nil, messages.ERR_ALREADY_CONNECTED
 	}
 
-	nodeA.port = self.portDelivery.Get(nodeA.host)
+	nodeA.port = self.portDelivery.get(nodeA.host)
 	portACM := messages.AssignPortCM{nodeA.port}
 	portACMS := messages.Serialize(messages.MsgAssignPortCM, portACM)
 
-	nodeB.port = self.portDelivery.Get(nodeB.host)
+	nodeB.port = self.portDelivery.get(nodeB.host)
 	portBCM := messages.AssignPortCM{nodeB.port}
 	portBCMS := messages.Serialize(messages.MsgAssignPortCM, portBCM)
 
@@ -102,7 +149,7 @@ func (self *NodeManager) ConnectNodeToNode(idA, idB cipher.PubKey) (*TransportFa
 	return tf, nil
 }
 
-func (self *NodeManager) connect(nodeFromId, nodeToId cipher.PubKey, appIdFrom, appIdTo messages.AppId) (messages.ConnectionId, error) {
+func (self *NodeManager) connectWithRoute(nodeFromId, nodeToId cipher.PubKey, appIdFrom, appIdTo messages.AppId) (messages.ConnectionId, error) {
 
 	connectionId := messages.RandConnectionId()
 
@@ -172,32 +219,6 @@ func (self *NodeManager) connect(nodeFromId, nodeToId cipher.PubKey, appIdFrom, 
 	return connectionId, nil
 }
 
-func (self *NodeManager) Tick() {
-}
-
-func (self *NodeManager) Shutdown() {
-	for _, n := range self.nodeList {
-		n.shutdown()
-	}
-	self.msgServer.shutdown()
-	time.Sleep(1 * time.Millisecond)
-}
-
-func newNodeManager() *NodeManager {
-	nm := new(NodeManager)
-	nm.nodeList = make(map[cipher.PubKey]*NodeRecord)
-	nm.transportFactoryList = []*TransportFactory{}
-	nm.routeGraph = newGraph()
-	nm.portDelivery = newPortDelivery()
-	msgServer, err := newMsgServer(nm)
-	if err != nil {
-		panic(err)
-	}
-	nm.msgServer = msgServer
-	nm.lock = &sync.Mutex{}
-	return nm
-}
-
 func (self *NodeManager) getNodeById(id cipher.PubKey) (*NodeRecord, error) { // resolve it
 	result, found := self.nodeList[id]
 
@@ -205,15 +226,6 @@ func (self *NodeManager) getNodeById(id cipher.PubKey) (*NodeRecord, error) { //
 		return &NodeRecord{}, messages.ERR_NODE_NOT_FOUND
 	}
 	return result, nil
-}
-
-func (self *NodeManager) GetAllNodes() map[cipher.PubKey]*NodeRecord {
-	return self.nodeList
-}
-
-func (self *NodeManager) GetNodeById(id cipher.PubKey) (*NodeRecord, error) {
-	n, err := self.getNodeById(id)
-	return n, err
 }
 
 func (self *NodeManager) getRandomNode() cipher.PubKey {
@@ -234,7 +246,7 @@ func (self *NodeManager) connected(pubkey0, pubkey1 cipher.PubKey) bool {
 		return false
 	}
 
-	return node0.ConnectedTo(node1) && node1.ConnectedTo(node0)
+	return node0.connectedTo(node1) && node1.connectedTo(node0)
 }
 
 func (self *NodeManager) connectRandomly(node0 cipher.PubKey) {
@@ -245,7 +257,7 @@ func (self *NodeManager) connectRandomly(node0 cipher.PubKey) {
 			break
 		}
 	}
-	self.ConnectNodeToNode(node0, node1)
+	self.connectNodeToNode(node0, node1)
 
 }
 
@@ -257,7 +269,7 @@ func (self *NodeManager) routeExists(pubkey0, pubkey1 cipher.PubKey) bool {
 func (self *NodeManager) GetTicks() int {
 	ticks := 0
 	for _, n := range self.nodeList {
-		ticks += n.GetTicks()
+		ticks += n.getTicks()
 	}
 	return ticks
 }

@@ -3,8 +3,8 @@ package visor
 import (
 	"errors"
 	"fmt"
+	"sync"
 
-	"log"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -19,8 +19,8 @@ var (
 	logger = util.MustGetLogger("visor")
 )
 
-// VisorConfig configuration parameters for the Visor
-type VisorConfig struct {
+// Config configuration parameters for the Visor
+type Config struct {
 	// Is this the master blockchain
 	IsMaster bool
 
@@ -66,14 +66,15 @@ type VisorConfig struct {
 	//WalletConstructor wallet.WalletConstructor
 	// Default type of wallet to create
 	//WalletTypeDefault wallet.WalletType
-	DB *bolt.DB
+	DBPath      string
+	Arbitrating bool // enable arbitrating
 }
 
-// NewVisorConfig, Note, put cap on block size, not on transactions/block
+// NewVisorConfig put cap on block size, not on transactions/block
 //Skycoin transactions are smaller than Bitcoin transactions so skycoin has
 //a higher transactions per second for the same block size
-func NewVisorConfig() VisorConfig {
-	c := VisorConfig{
+func NewVisorConfig() Config {
+	c := Config{
 		IsMaster: false,
 
 		//move wallet management out
@@ -106,7 +107,7 @@ func NewVisorConfig() VisorConfig {
 
 // Visor manages the Blockchain as both a Master and a Normal
 type Visor struct {
-	Config VisorConfig
+	Config Config
 	// Unconfirmed transactions, held for relay until we get block confirmation
 	Unconfirmed *UnconfirmedTxnPool
 	Blockchain  *Blockchain
@@ -119,25 +120,58 @@ func walker(hps []coin.HashPair) cipher.SHA256 {
 	return hps[0].Hash
 }
 
+// open the blockdb.
+func openDB(dbFile string) (*bolt.DB, func()) {
+	// dbFile := filepath.Join(util.DataDir, dbpath)
+	db, err := bolt.Open(dbFile, 0600, &bolt.Options{
+		Timeout: 500 * time.Millisecond,
+	})
+	if err != nil {
+		panic(fmt.Errorf("Open boltdb failed, err:%v", err))
+	}
+	return db, func() {
+		db.Close()
+	}
+}
+
+// VsClose visor close function
+type VsClose func()
+
 // NewVisor Creates a normal Visor given a master's public key
-func NewVisor(c VisorConfig) *Visor {
+func NewVisor(c Config) (*Visor, VsClose) {
 	logger.Debug("Creating new visor")
 	// Make sure inputs are correct
 	if c.IsMaster {
 		logger.Debug("Visor is master")
 		if c.BlockchainPubkey != cipher.PubKeyFromSecKey(c.BlockchainSeckey) {
-			log.Panicf("Cannot run in master: invalid seckey for pubkey")
+			logger.Panicf("Cannot run in master: invalid seckey for pubkey")
 		}
 	}
 
-	history, err := historydb.New(c.DB)
+	db, closeDB := openDB(c.DBPath)
+	history, err := historydb.New(db)
 	if err != nil {
-		log.Panic(err)
+		logger.Panic(err)
 	}
 
-	tree := blockdb.NewBlockTree(c.DB)
-	bc := NewBlockchain(tree, walker)
+	// creates block signature bucket
+	sigs := blockdb.NewBlockSigs(db)
+
+	tree := blockdb.NewBlockTree(db)
+	bc := NewBlockchain(tree, walker, Arbitrating(c.Arbitrating))
 	bp := NewBlockchainParser(history, bc)
+	//
+	var verifyOnce sync.Once
+	bp.BindParsedNotifier(func(height uint64) {
+		if height == bc.Head().Head.BkSeq {
+			verifyOnce.Do(func() {
+				// only do verification once when loading and parsing from local blocks
+				if err := bc.VerifySigs(c.BlockchainPubkey, sigs); err != nil {
+					logger.Panicf("Invalid block signatures: %v", err)
+				}
+			})
+		}
+	})
 
 	bc.BindListener(bp.BlockListener)
 
@@ -146,8 +180,8 @@ func NewVisor(c VisorConfig) *Visor {
 	v := &Visor{
 		Config:      c,
 		Blockchain:  bc,
-		blockSigs:   blockdb.NewBlockSigs(c.DB),
-		Unconfirmed: NewUnconfirmedTxnPool(c.DB),
+		blockSigs:   sigs,
+		Unconfirmed: NewUnconfirmedTxnPool(db),
 		history:     history,
 		bcParser:    bp,
 	}
@@ -171,30 +205,29 @@ func NewVisor(c VisorConfig) *Visor {
 		}
 	}
 
-	if err := v.Blockchain.VerifySigs(c.BlockchainPubkey, v.blockSigs); err != nil {
-		log.Panicf("Invalid block signatures: %v", err)
+	return v, func() {
+		closeDB()
 	}
-
-	return v
 }
 
 // NewMinimalVisor returns a Visor with minimum initialization necessary for empty blockchain
 // access
-func NewMinimalVisor(c VisorConfig) *Visor {
-	return &Visor{
-		Config:      c,
-		blockSigs:   blockdb.NewBlockSigs(c.DB),
-		Unconfirmed: NewUnconfirmedTxnPool(c.DB),
-		//Wallets:     nil,
-	}
-}
+// func NewMinimalVisor(c VisorConfig) (*Visor {
+// 	db, _ := openDB(c.DBPath)
+// 	return &Visor{
+// 		Config:      c,
+// 		blockSigs:   blockdb.NewBlockSigs(db),
+// 		Unconfirmed: NewUnconfirmedTxnPool(db),
+// 		//Wallets:     nil,
+// 	}
+// }
 
 // GenesisPreconditions panics if conditions for genesis block are not met
 func (vs *Visor) GenesisPreconditions() {
 	//if seckey is set
 	if vs.Config.BlockchainSeckey != (cipher.SecKey{}) {
 		if vs.Config.BlockchainPubkey != cipher.PubKeyFromSecKey(vs.Config.BlockchainSeckey) {
-			log.Panicf("Cannot create genesis block. Invalid secret key for pubkey")
+			logger.Panicf("Cannot create genesis block. Invalid secret key for pubkey")
 		}
 	}
 }
@@ -209,7 +242,7 @@ func (vs *Visor) RefreshUnconfirmed() []cipher.SHA256 {
 func (vs *Visor) CreateBlock(when uint64) (coin.SignedBlock, error) {
 	var sb coin.SignedBlock
 	if !vs.Config.IsMaster {
-		log.Panic("Only master chain can create blocks")
+		logger.Panic("Only master chain can create blocks")
 	}
 	if vs.Unconfirmed.Txns.len() == 0 {
 		return sb, errors.New("No transactions")
@@ -262,7 +295,7 @@ func (vs *Visor) verifySignedBlock(b *coin.SignedBlock) error {
 // SignBlock signs a block for master.  Will panic if anything is invalid
 func (vs *Visor) SignBlock(b coin.Block) coin.SignedBlock {
 	if !vs.Config.IsMaster {
-		log.Panic("Only master chain can sign blocks")
+		logger.Panic("Only master chain can sign blocks")
 	}
 	sig := cipher.SignHash(b.HashHeader(), vs.Config.BlockchainSeckey)
 	sb := coin.SignedBlock{
@@ -348,12 +381,12 @@ func (vs *Visor) GetSignedBlocksSince(seq, ct uint64) []coin.SignedBlock {
 func (vs *Visor) GetGenesisBlock() coin.SignedBlock {
 	b := vs.Blockchain.GetGenesisBlock()
 	if b == nil {
-		log.Panic("No genesis signature")
+		logger.Panic("No genesis signature")
 	}
 
 	sig, err := vs.blockSigs.Get(b.HashHeader())
 	if err != nil {
-		log.Panic(err)
+		logger.Panic(err)
 	}
 
 	return coin.SignedBlock{
@@ -417,7 +450,7 @@ func (vs *Visor) GetBlocks(start, end uint64) []coin.Block {
 // - rename InjectTransaction
 // Refactor
 // Why do does this return both error and bool
-func (vs *Visor) InjectTxn(txn coin.Transaction) (error, bool) {
+func (vs *Visor) InjectTxn(txn coin.Transaction) (bool, error) {
 	//addrs := self.Wallets.GetAddressSet()
 	return vs.Unconfirmed.InjectTxn(vs.Blockchain, txn)
 }

@@ -23,7 +23,9 @@ import (
 // and forwards it to the transport
 
 type Node struct {
-	id                      cipher.PubKey
+	id       cipher.PubKey
+	hostname string
+
 	incomingControlChannel  chan *CM
 	incomingFromTransport   chan *messages.InRouteMessage
 	incomingFromConnections chan *messages.InRouteMessage
@@ -49,7 +51,7 @@ type Node struct {
 	port uint32
 
 	controlConn *net.UDPConn
-	nmAddr      net.Addr
+	serverAddrs []net.Addr
 
 	congested          bool
 	connectionThrottle uint32
@@ -57,16 +59,23 @@ type Node struct {
 
 	sequence uint32
 
-	ticks int
+	ticks uint32
 
 	maxBuffer     uint64
 	maxPacketSize uint32
 	timeUnit      time.Duration
 
+	connectResponseSequence uint32
+	connectResponseChannels map[uint32]chan bool
+
 	connectionResponseSequence uint32
 	connectionResponseChannels map[uint32]chan messages.ConnectionId
 
-	apps map[string]messages.Consumer
+	appTalkPort string
+	appSequence uint32
+	appConns    map[string]net.Conn
+
+	viscriptServer *NodeViscriptServer
 }
 
 type CM struct {
@@ -78,59 +87,22 @@ var (
 	CONTROL_TIMEOUT = 10000 * time.Millisecond
 )
 
-func CreateNode(host, nmAddr string) (messages.NodeInterface, error) { // public for test reasons
-	node, err := createAndRegisterNode(host, nmAddr, false)
+func CreateNode(nodeConfig *NodeConfig) (messages.NodeInterface, error) { // public for test reasons
+	node, err := createAndRegisterNode(nodeConfig, false)
 	return node, err
 }
 
-func CreateAndConnectNode(host, nmAddr string) (messages.NodeInterface, error) { // public for test reasons
-	node, err := createAndRegisterNode(host, nmAddr, true)
+func CreateAndConnectNode(nodeConfig *NodeConfig) (messages.NodeInterface, error) { // public for test reasons
+	node, err := createAndRegisterNode(nodeConfig, true)
 	return node, err
 }
 
-func (self *Node) Shutdown() {
-	self.controlConn.Close()
-	self.closeControlMessagesChannel <- true
-	for _, tr := range self.transports {
-		tr.Shutdown()
-	}
-}
+func createAndRegisterNode(nodeConfig *NodeConfig, connect bool) (messages.NodeInterface, error) {
 
-func (self *Node) RegisterApp(app messages.Consumer) error {
-	id := string(app.Id())
-	self.lock.Lock()
-	if _, ok := self.apps[id]; ok {
-		return messages.ERR_APP_ID_EXISTS
-	}
-	self.lock.Unlock()
-	self.apps[id] = app
-	return nil
-}
-
-func (self *Node) Dial(address cipher.PubKey, appIdFrom, appIdTo messages.AppId) (messages.Connection, error) {
-	connId, err := self.sendConnectToServer(address, appIdFrom, appIdTo)
-	if err != nil {
-		return nil, err
-	}
-
-	self.lock.Lock()
-
-	conn, ok := self.connections[connId]
-	self.lock.Unlock()
-	if !ok {
-		return nil, messages.ERR_CONNECTION_DOESNT_EXIST
-	}
-
-	return conn, nil
-}
-
-func (self *Node) GetConnection(id messages.ConnectionId) messages.Connection {
-	self.lock.Lock()
-	defer self.lock.Unlock()
-	return self.connections[id]
-}
-
-func createAndRegisterNode(fullhost, nmAddr string, connect bool) (messages.NodeInterface, error) {
+	fullhost := nodeConfig.ClientAddr
+	serverAddrs := nodeConfig.ServerAddrs
+	appTalkPort := strconv.Itoa(nodeConfig.AppTalkPort)
+	hostname := nodeConfig.Hostname
 
 	hostData := strings.Split(fullhost, ":")
 	if len(hostData) != 2 {
@@ -146,14 +118,25 @@ func createAndRegisterNode(fullhost, nmAddr string, connect bool) (messages.Node
 
 	node := newNode(host)
 
-	controlConn, err := node.openUDPforCM(port, nmAddr)
+	node.appTalkPort = appTalkPort
+	node.hostname = hostname
+
+	for _, serverAddr := range serverAddrs {
+		node.addServer(serverAddr)
+	}
+
+	controlConn, err := node.openUDPforCM(port)
 	if err != nil {
+		panic(err)
 		return nil, err
 	}
 	node.controlConn = controlConn
+
 	go node.receiveControlMessages()
 
-	err = node.sendRegisterNodeToServer(fullhost, connect) //**** send registration request to nm
+	go node.listenForApps()
+
+	err = node.sendRegisterNodeToServer(hostname, fullhost, connect)
 	if err != nil {
 		return nil, err
 	}
@@ -174,11 +157,12 @@ func newNode(host string) *Node {
 	node.routeForwardingRules = make(map[messages.RouteId]*messages.RouteRule)
 	node.controlChannels = make(map[messages.ChannelId]*ControlChannel)
 	node.connections = make(map[messages.ConnectionId]*Connection)
+	node.connectResponseChannels = make(map[uint32]chan bool)
 	node.connectionResponseChannels = make(map[uint32]chan messages.ConnectionId)
 	node.addZeroControlChannel()
 	node.host = host
 	node.closeControlMessagesChannel = make(chan bool)
-	node.apps = make(map[string]messages.Consumer)
+	node.appConns = make(map[string]net.Conn)
 	node.Tick()
 	return node
 }
@@ -187,11 +171,68 @@ func newLocalNode() *Node { // for tests
 	return newNode(messages.LOCALHOST)
 }
 
+func (self *Node) Shutdown() {
+
+	if self.viscriptServer != nil {
+		self.viscriptServer.Shutdown()
+	}
+
+	for _, appConn := range self.appConns {
+		appConn.Close()
+	}
+
+	for _, tr := range self.transports {
+		tr.Shutdown()
+	}
+
+	self.controlConn.Close()
+	self.closeControlMessagesChannel <- true
+}
+
+func (self *Node) Dial(address string, appIdFrom, appIdTo messages.AppId) (messages.Connection, error) {
+	connId, err := self.sendConnectWithRouteToServer(address, appIdFrom, appIdTo)
+	if err != nil {
+		return nil, err
+	}
+
+	self.lock.Lock()
+
+	conn, ok := self.connections[connId]
+	self.lock.Unlock()
+	if !ok {
+		return nil, messages.ERR_CONNECTION_DOESNT_EXIST
+	}
+
+	return conn, nil
+}
+
+func (self *Node) ConnectDirectly(address string) error {
+	return self.sendConnectDirectlyToServer(address)
+}
+
+func (self *Node) GetConnection(id messages.ConnectionId) messages.Connection {
+	self.lock.Lock()
+	defer self.lock.Unlock()
+	return self.connections[id]
+}
+
+func (self *Node) AppTalkAddr() string {
+	return self.host + ":" + self.appTalkPort
+}
+
 //move node forward on tick, process events
 func (self *Node) Tick() {
 	backChannel := make(chan bool, 32)
 	self.runCycles(backChannel)
 	<-backChannel
+}
+
+func (self *Node) GetTicks() uint32 {
+	ticks := self.ticks
+	for _, tr := range self.transports {
+		ticks += tr.GetTicks()
+	}
+	return ticks
 }
 
 func (self *Node) Id() cipher.PubKey {

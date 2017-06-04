@@ -158,7 +158,7 @@ func TestConnectionMessage(t *testing.T) {
 	messages.SetDebugLogLevel()
 
 	node := newLocalNode()
-	assert.Equal(t, node.ticks, 0)
+	assert.Equal(t, uint32(0), node.ticks)
 	registerAck := &messages.RegisterNodeCMAck{
 		MaxBuffer:         512,
 		ConnectionTimeout: 10000,
@@ -171,7 +171,7 @@ func TestConnectionMessage(t *testing.T) {
 	inRouteMessage := messages.InRouteMessage{}
 	conn.sendToNode(&inRouteMessage)
 	time.Sleep(10 * time.Millisecond)
-	assert.Equal(t, 1, node.ticks)
+	assert.Equal(t, uint32(1), node.ticks)
 }
 
 func TestTransportCreate(t *testing.T) {
@@ -190,5 +190,5 @@ func TestTransportCreate(t *testing.T) {
 	node.setTransportFromMessage(transportCreateMessage)
 	assert.Len(t, node.transports, 1)
 	assert.Equal(t, trId, node.transports[trId].Id())
-	assert.Equal(t, pubKey, node.transports[trId].AttachedNode.Id())
+	assert.Equal(t, pubKey, node.transports[trId].AttachedNode.(*Node).Id())
 }

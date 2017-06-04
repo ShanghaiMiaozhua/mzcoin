@@ -9,33 +9,46 @@ import (
 )
 
 const (
-	MsgInRouteMessage             = iota // Transport -> Node
-	MsgOutRouteMessage                   // Node -> Transport
-	MsgTransportDatagramTransfer         // Transport -> Transport, simulating sending packet over network
-	MsgTransportDatagramACK              // Transport -> Transport, simulating ACK for packet
-	MsgConnectionMessage                 // Connection -> Connection
-	MsgConnectionAck                     // Connection -> Connection
-	MsgProxyMessage                      // Application -> Application
-	MsgAppMessage                        // Application -> Application
-	MsgCongestionPacket                  // Transport -> Transport
-	MsgInControlMessage                  // Transport -> Node, control message
-	MsgOutControlMessage                 // Node -> Transport, control message
-	MsgCloseChannelControlMessage        // Node -> Control channel, close control channel
-	MsgAddRouteCM                        // Node -> Control channel, add new route
-	MsgRemoveRouteCM                     // Node -> Control channel, remove route
-	MsgRegisterNodeCM                    // Node -> NodeManager
-	MsgRegisterNodeCMAck                 // NodeManager -> Node
-	MsgAssignPortCM                      // NodeManager -> Node
-	MsgTransportCreateCM                 // NodeManager -> Node
-	MsgTransportTickCM                   // NodeManager -> Node
-	MsgTransportShutdownCM               // NodeManager -> Node
-	MsgOpenUDPCM                         // NodeManager -> Node
-	MsgCommonCMAck                       // Node -> NodeManager, NodeManager -> Node
-	MsgConnectCM                         // Node -> NodeManager
-	MsgConnectCMAck                      // NodeManager -> Node
-	MsgAssignConnectionCM                // NodeManager -> Node
-	MsgConnectionOnCM                    // NodeManager -> Node
-	MsgShutdownCM                        // NodeManager -> Node
+	MsgInRouteMessage            = iota // Transport -> Node
+	MsgOutRouteMessage                  // Node -> Transport
+	MsgTransportDatagramTransfer        // Transport -> Transport, simulating sending packet over network
+	MsgTransportDatagramACK             // Transport -> Transport, simulating ACK for packet
+	MsgCongestionPacket                 // Transport -> Transport
+
+	MsgConnectionMessage // Connection -> Connection
+	MsgConnectionAck     // Connection -> Connection
+
+	MsgProxyMessage // Application -> Application
+	MsgAppMessage   // Application -> Application
+
+	MsgInControlMessage           // Transport -> Node, control message
+	MsgOutControlMessage          // Node -> Transport, control message
+	MsgCloseChannelControlMessage // Node -> Control channel, close control channel
+	MsgAddRouteCM                 // Node -> Control channel, add new route
+	MsgRemoveRouteCM              // Node -> Control channel, remove route
+	MsgRegisterNodeCM             // Node -> NodeManager
+	MsgRegisterNodeCMAck          // NodeManager -> Node
+	MsgAssignPortCM               // NodeManager -> Node
+	MsgTransportCreateCM          // NodeManager -> Node
+	MsgTransportTickCM            // NodeManager -> Node
+	MsgTransportShutdownCM        // NodeManager -> Node
+	MsgOpenUDPCM                  // NodeManager -> Node
+	MsgCommonCMAck                // Node -> NodeManager, NodeManager -> Node
+	MsgConnectDirectlyCM          // Node -> NodeManager
+	MsgConnectDirectlyCMAck       // NodeManager -> Node
+	MsgConnectWithRouteCM         // Node -> NodeManager
+	MsgConnectWithRouteCMAck      // NodeManager -> Node
+	MsgAssignConnectionCM         // NodeManager -> Node
+	MsgConnectionOnCM             // NodeManager -> Node
+	MsgShutdownCM                 // NodeManager -> Node
+
+	MsgNodeAppMessage      // Application -> Node
+	MsgNodeAppResponse     // Node -> Application
+	MsgSendFromAppMessage  // Application -> Node
+	MsgRegisterAppMessage  // Application -> Node
+	MsgConnectToAppMessage // Application -> Node
+	MsgAssignConnectionNAM // Node -> Application
+
 	//MessageMouseScroll        // 1
 	//MessageMouseButton        // 2
 	//MessageCharacter
@@ -49,7 +62,6 @@ func GetMessageType(message []byte) uint16 {
 	if err != nil {
 		fmt.Println("binary.Read failed: ", err)
 	}
-	//	value = (uint16)(message[0])
 	return value
 }
 
@@ -142,8 +154,9 @@ type ProxyMessage struct {
 // ==================== control messages ========================
 
 type RegisterNodeCM struct {
-	Host    string
-	Connect bool
+	Hostname string
+	Host     string
+	Connect  bool
 }
 
 type RegisterNodeCMAck struct {
@@ -190,15 +203,26 @@ type CommonCMAck struct {
 	Ok bool
 }
 
-type ConnectCM struct {
+type ConnectDirectlyCM struct {
+	Sequence uint32
+	From     cipher.PubKey
+	To       string
+}
+
+type ConnectDirectlyCMAck struct {
+	Sequence uint32
+	Ok       bool
+}
+
+type ConnectWithRouteCM struct {
 	Sequence  uint32
 	AppIdFrom AppId
 	AppIdTo   AppId
 	From      cipher.PubKey
-	To        cipher.PubKey
+	To        string
 }
 
-type ConnectCMAck struct {
+type ConnectWithRouteCMAck struct {
 	Sequence     uint32
 	Ok           bool
 	ConnectionId ConnectionId
@@ -217,4 +241,38 @@ type ConnectionOnCM struct {
 
 type ShutdownCM struct {
 	NodeId cipher.PubKey
+}
+
+type UserCommand struct {
+	Sequence uint32
+	AppId    uint32
+	Payload  []byte
+}
+
+type NodeAppMessage struct {
+	Sequence uint32
+	AppId    AppId
+	Payload  []byte
+}
+
+type NodeAppResponse struct {
+	Sequence uint32
+}
+
+type SendFromAppMessage struct {
+	ConnectionId ConnectionId
+	Payload      []byte
+}
+
+type RegisterAppMessage struct {
+}
+
+type AssignConnectionNAM struct {
+	ConnectionId ConnectionId
+}
+
+type ConnectToAppMessage struct {
+	Address string
+	AppFrom AppId
+	AppTo   AppId
 }
