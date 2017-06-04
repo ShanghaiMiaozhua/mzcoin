@@ -1,8 +1,6 @@
 package wallet
 
-import (
-	"github.com/wudaofan/mzcoin/src/coin"
-)
+import "github.com/skycoin/skycoin/src/coin"
 
 /*
 Do not show balances or outputs that have not cleared yet
