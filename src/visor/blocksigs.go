@@ -4,10 +4,9 @@ import (
 	"errors"
 	"io/ioutil"
 
-	"github.com/wudaofan/mzcoin/src/aether/encoder"
-	"github.com/wudaofan/mzcoin/src/cipher"
-	"github.com/wudaofan/mzcoin/src/coin"
-	"github.com/wudaofan/mzcoin/src/util"
+	"github.com/skycoin/skycoin/src/cipher"
+	"github.com/skycoin/skycoin/src/cipher/encoder"
+	"github.com/skycoin/skycoin/src/coin"
 )
 
 type SignedBlock struct {

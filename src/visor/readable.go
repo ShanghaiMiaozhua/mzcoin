@@ -8,8 +8,8 @@ import (
 
 	"strconv"
 
-	"github.com/wudaofan/mzcoin/src/cipher"
-	"github.com/wudaofan/mzcoin/src/coin"
+	"github.com/skycoin/skycoin/src/cipher"
+	"github.com/skycoin/skycoin/src/coin"
 )
 
 // BlockchainMetadata encapsulates useful information from the coin.Blockchain

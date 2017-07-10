@@ -22,24 +22,8 @@
 
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/anacrolix/envpprof"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/anacrolix/missinggo"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/anacrolix/utp"
-
-[[constraint]]
   name = "github.com/boltdb/bolt"
-  version = "1.0.0"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/bradfitz/iter"
+  version = "1.3.0"
 
 [[constraint]]
   name = "github.com/op/go-logging"

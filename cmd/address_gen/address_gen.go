@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/wudaofan/mzcoin/src/cipher"
+	"github.com/skycoin/skycoin/src/cipher"
 )
 
 // Note: Address_gen generates public keys and addresses

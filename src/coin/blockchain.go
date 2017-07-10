@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/wudaofan/mzcoin/src/aether/encoder"
-	"github.com/wudaofan/mzcoin/src/cipher"
-	"gopkg.in/op/go-logging.v1"
+	logging "github.com/op/go-logging"
+	"github.com/skycoin/skycoin/src/cipher"
+	"github.com/skycoin/skycoin/src/cipher/encoder"
 
-	//"time"
 	"bytes"
 )
 

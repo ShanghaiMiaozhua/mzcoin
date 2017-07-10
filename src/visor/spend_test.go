@@ -9,9 +9,9 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/wudaofan/mzcoin/src/cipher"
-	"github.com/wudaofan/mzcoin/src/coin"
-	"github.com/wudaofan/mzcoin/src/wallet"
+	"github.com/skycoin/skycoin/src/cipher"
+	"github.com/skycoin/skycoin/src/coin"
+	"github.com/skycoin/skycoin/src/wallet"
 	"github.com/stretchr/testify/assert"
 )
 

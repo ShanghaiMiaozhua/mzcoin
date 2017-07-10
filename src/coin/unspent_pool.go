@@ -3,7 +3,7 @@ package coin
 import (
 	"errors"
 
-	"github.com/wudaofan/mzcoin/src/cipher"
+	"github.com/skycoin/skycoin/src/cipher"
 )
 
 // UnspentPool manages UxOuts

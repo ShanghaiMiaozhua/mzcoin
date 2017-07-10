@@ -3,7 +3,7 @@ package cipher
 import (
 	"testing"
 
-	"github.com/wudaofan/mzcoin/src/cipher/base58"
+	"github.com/skycoin/skycoin/src/cipher/base58"
 	"github.com/stretchr/testify/assert"
 )
 

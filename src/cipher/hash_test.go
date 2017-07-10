@@ -7,7 +7,8 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/wudaofan/mzcoin/src/cipher/ripemd160"
+	"golang.org/x/crypto/ripemd160"
+
 	"github.com/stretchr/testify/assert"
 )
 

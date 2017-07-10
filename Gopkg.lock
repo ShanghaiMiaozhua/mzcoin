@@ -26,6 +26,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/skycoin/skycoin"
+  packages = ["src/api/cli","src/api/webrpc","src/cipher","src/cipher/base58","src/cipher/chacha20","src/cipher/encoder","src/cipher/go-bip39","src/cipher/ripemd160","src/cipher/secp256k1-go","src/cipher/secp256k1-go/secp256k1-go2","src/coin","src/consensus","src/daemon","src/daemon/gnet","src/daemon/pex","src/gui","src/util/browser","src/util/cert","src/util/file","src/util/http","src/util/logging","src/util/utc","src/visor","src/visor/blockdb","src/visor/bucket","src/visor/historydb","src/wallet"]
+  revision = "dd924e1f2de8fab945e05b3245dbeabf267f2910"
+  version = "v0.19.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/stretchr/objx"
   packages = ["."]
@@ -58,18 +64,18 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["pbkdf2"]
-  revision = "adbae1b6b6fb4b02448a0fc0dbbc9ba2b95b294d"
+  packages = ["pbkdf2","ripemd160"]
+  revision = "08a7dbd3d99261d9ae86ef1b3b8bdb0382fb82cd"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "50298aa7a9faed39cd341ad7fd9275b1d5ddd70c"
+  revision = "739734461d1c916b6c72a63d7efda2b27edb369f"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fe04266049e4a510d18884a25ff48676c7852487d18bc8bb81b0776bfd264259"
+  inputs-digest = "b78bd9e0520703e38721cc121f7d39245fcc8a2bd75e24803c13ad81b626acb0"
   solver-name = "gps-cdcl"
   solver-version = 1

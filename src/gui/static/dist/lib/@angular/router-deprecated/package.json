@@ -2,18 +2,32 @@
   "author": {
     "name": "angular"
   },
-  "bundleDependencies": false,
-  "deprecated": false,
+  "dependencies": {},
   "description": "",
+  "devDependencies": {},
+  "directories": {},
+  "dist": {
+    "shasum": "d87e0ae97d62a9ecc63279ead33fbbd1476ea572",
+    "tarball": "https://registry.npmjs.org/@angular/router-deprecated/-/router-deprecated-2.0.0-rc.1.tgz"
+  },
   "jsnext:main": "esm/index.js",
   "license": "MIT",
   "main": "index.js",
+  "maintainers": [
+    {
+      "email": "angular-core+npm@google.com",
+      "name": "angular"
+    }
+  ],
   "name": "@angular/router-deprecated",
+  "optionalDependencies": {},
   "peerDependencies": {
-    "@angular/core": "2.0.0-rc.1",
     "@angular/common": "2.0.0-rc.1",
+    "@angular/core": "2.0.0-rc.1",
     "@angular/platform-browser": "2.0.0-rc.1"
   },
+  "readme": "ERROR: No README data found!",
+  "scripts": {},
   "typins": "index.d.ts",
   "version": "2.0.0-rc.1"
 }
