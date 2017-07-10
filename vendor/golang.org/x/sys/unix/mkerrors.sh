@@ -166,6 +166,7 @@ struct ltchars {
 #include <linux/fs.h>
 #include <linux/keyctl.h>
 #include <linux/netlink.h>
+#include <linux/perf_event.h>
 #include <linux/random.h>
 #include <linux/reboot.h>
 #include <linux/rtnetlink.h>
@@ -376,7 +377,7 @@ ccflags="$@"
 		$2 == "IFNAMSIZ" ||
 		$2 ~ /^CTL_(MAXNAME|NET|QUERY)$/ ||
 		$2 ~ /^SYSCTL_VERS/ ||
-		$2 ~ /^(MS|MNT)_/ ||
+		$2 ~ /^(MS|MNT|UMOUNT)_/ ||
 		$2 ~ /^TUN(SET|GET|ATTACH|DETACH)/ ||
 		$2 ~ /^(O|F|E?FD|NAME|S|PTRACE|PT)_/ ||
 		$2 ~ /^LINUX_REBOOT_CMD_/ ||
@@ -404,6 +405,7 @@ ccflags="$@"
 		$2 ~ /^GRND_/ ||
 		$2 ~ /^KEY_(SPEC|REQKEY_DEFL)_/ ||
 		$2 ~ /^KEYCTL_/ ||
+		$2 ~ /^PERF_EVENT_IOC_/ ||
 		$2 ~ /^SECCOMP_MODE_/ ||
 		$2 ~ /^SPLICE_/ ||
 		$2 ~ /^(VM|VMADDR)_/ ||
