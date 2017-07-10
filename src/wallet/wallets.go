@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/skycoin/skycoin/src/cipher"
-	"github.com/skycoin/skycoin/src/util"
+	"github.com/skycoin/skycoin/src/util/file"
 )
 
 // Wallets wallets map
@@ -43,7 +43,7 @@ func LoadWallets(dir string) (Wallets, error) {
 	}
 
 	//have := make(map[WalletID]Wallet, len(entries))
-	wallets := make(Wallets, 0)
+	wallets := Wallets{}
 	for i, e := range entries {
 		if e.Mode().IsRegular() {
 			name := e.Name()
@@ -73,6 +73,7 @@ func LoadWallets(dir string) (Wallets, error) {
 				tm := time.Now().Unix() + int64(i)
 				mustUpdateWallet(&w, dir, tm)
 			}
+
 			wallets[name] = &w
 		}
 	}
@@ -89,7 +90,7 @@ func backupWltFile(src, dst string) error {
 		return err
 	}
 
-	n, err := util.CopyFile(dst, bytes.NewBuffer(b))
+	n, err := file.CopyFile(dst, bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
@@ -128,6 +129,11 @@ func (wlts *Wallets) Add(w Wallet) error {
 
 	(*wlts)[w.GetFilename()] = &w
 	return nil
+}
+
+// Remove wallet of specific id
+func (wlts *Wallets) Remove(id string) {
+	delete(*wlts, id)
 }
 
 // Get returns wallet by wallet id

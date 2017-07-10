@@ -10,7 +10,7 @@ import (
 
 	"github.com/skycoin/skycoin/src/cipher"
 	bip39 "github.com/skycoin/skycoin/src/cipher/go-bip39"
-	"github.com/skycoin/skycoin/src/util"
+	"github.com/skycoin/skycoin/src/util/file"
 )
 
 // Wallet contains meta data and address entries.
@@ -31,28 +31,24 @@ type Option func(w *Wallet)
 
 // NewWallet generates Deterministic Wallet
 // generates a random seed if seed is ""
-func NewWallet(wltName string, opts ...Option) Wallet {
-	//old seed generation
-	//seedRaw := cipher.SumSHA256(secp256k1.RandByte(64))
-	//seed := hex.EncodeToString(seedRaw[:])
-
+func NewWallet(wltName string, opts ...Option) (*Wallet, error) {
 	// generaten bip39 as default seed
 	entropy, err := bip39.NewEntropy(128)
 	if err != nil {
-		logger.Panicf("generate bip39 entropy failed, err:%v", err)
+		return nil, fmt.Errorf("generate bip39 entropy failed, err:%v", err)
 	}
 
 	seed, err := bip39.NewMnemonic(entropy)
 	if err != nil {
-		logger.Panicf("generate bip39 seed failed, err:%v", err)
+		return nil, fmt.Errorf("generate bip39 seed failed, err:%v", err)
 	}
 
-	w := Wallet{
+	w := &Wallet{
 		Meta: map[string]string{
 			"filename":     wltName,
 			"version":      version,
 			"label":        "",
-			"walletFolder": util.UserHome() + "/.skycoin/wallets",
+			"walletFolder": file.UserHome() + "/.skycoin/wallets",
 			"seed":         seed,
 			"lastSeed":     seed,
 			"tm":           fmt.Sprintf("%v", time.Now().Unix()),
@@ -61,10 +57,10 @@ func NewWallet(wltName string, opts ...Option) Wallet {
 	}
 
 	for _, opt := range opts {
-		opt(&w)
+		opt(w)
 	}
 
-	return w
+	return w, nil
 }
 
 // OptCoin NewWallet function's optional argument

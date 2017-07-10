@@ -5,10 +5,11 @@ import (
 
 	"github.com/skycoin/skycoin/src/cipher"
 	"github.com/skycoin/skycoin/src/cipher/encoder"
-	"github.com/skycoin/skycoin/src/util"
+
+	"github.com/skycoin/skycoin/src/util/logging"
 )
 
-var logger = util.MustGetLogger("coin")
+var logger = logging.MustGetLogger("coin")
 
 // Block represents the block struct
 type Block struct {
@@ -66,21 +67,22 @@ type Block struct {
 */
 
 // NewBlock creates new block.
-func NewBlock(prev Block, currentTime uint64, unspent UnspentPool,
-	txns Transactions, calc FeeCalculator) Block {
+func NewBlock(prev Block, currentTime uint64, uxHash cipher.SHA256,
+	txns Transactions, calc FeeCalculator) (*Block, error) {
 	if len(txns) == 0 {
-		logger.Panic("Refusing to create block with no transactions")
+		return nil, fmt.Errorf("Refusing to create block with no transactions")
 	}
 	fee, err := txns.Fees(calc)
 	if err != nil {
 		// This should have been caught earlier
-		logger.Panicf("Invalid transaction fees: %v", err)
+		return nil, fmt.Errorf("Invalid transaction fees: %v", err)
 	}
+
 	body := BlockBody{txns}
-	return Block{
-		Head: NewBlockHeader(prev.Head, unspent, currentTime, fee, body),
+	return &Block{
+		Head: NewBlockHeader(prev.Head, uxHash, currentTime, fee, body),
 		Body: body,
-	}
+	}, nil
 }
 
 // HashHeader return hash of block head.
@@ -134,7 +136,7 @@ func (b Block) GetTransaction(txHash cipher.SHA256) (Transaction, bool) {
 }
 
 // NewBlockHeader creates block header
-func NewBlockHeader(prev BlockHeader, unspent UnspentPool, currentTime,
+func NewBlockHeader(prev BlockHeader, uxHash cipher.SHA256, currentTime,
 	fee uint64, body BlockBody) BlockHeader {
 	if currentTime <= prev.Time {
 		logger.Panic("Time can only move forward")
@@ -147,7 +149,7 @@ func NewBlockHeader(prev BlockHeader, unspent UnspentPool, currentTime,
 		Time:     currentTime,
 		BkSeq:    prev.BkSeq + 1,
 		Fee:      fee,
-		UxHash:   unspent.GetUxHash(),
+		UxHash:   uxHash,
 	}
 }
 
