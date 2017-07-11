@@ -478,3 +478,8 @@ func (gw *Gateway) AddressesBalance(addrs []cipher.Address) (balance wallet.Bala
 	})
 	return
 }
+
+// GetWalletDir returns wallet dir path
+func (gw *Gateway) GetWalletDir() string {
+	return gw.d.Config.DataDirectory + "/wallets"
+}
