@@ -554,7 +554,8 @@ func Run(c *Config) {
 	// Debug only - forces connection on start.  Violates thread safety.
 	if c.ConnectTo != "" {
 		if err := d.Pool.Pool.Connect(c.ConnectTo); err != nil {
-			log.Panic(err)
+			logger.Error("Force connect %s failed, %v", c.ConnectTo, err)
+			return
 		}
 	}
 
@@ -562,13 +563,13 @@ func Run(c *Config) {
 		var err error
 		if c.WebInterfaceHTTPS {
 			// Verify cert/key parameters, and if neither exist, create them
-			errs := cert.CreateCertIfNotExists(host, c.WebInterfaceCert, c.WebInterfaceKey, "Skycoind")
+			errs := cert.CreateCertIfNotExists(host, c.WebInterfaceCert, c.WebInterfaceKey, "Mzcoind")
 			if len(errs) != 0 {
 				for _, err := range errs {
 					logger.Error(err.Error())
 				}
 				logger.Error("gui.CreateCertIfNotExists failure")
-				os.Exit(1)
+				return
 			}
 
 			err = gui.LaunchWebInterfaceHTTPS(host, c.GUIDirectory, d, c.WebInterfaceCert, c.WebInterfaceKey)
@@ -579,7 +580,7 @@ func Run(c *Config) {
 		if err != nil {
 			logger.Error(err.Error())
 			logger.Error("Failed to start web GUI")
-			os.Exit(1)
+			return
 		}
 
 		if c.LaunchBrowser {
@@ -590,6 +591,7 @@ func Run(c *Config) {
 				logger.Info("Launching System Browser with %s", fullAddress)
 				if err := browser.Open(fullAddress); err != nil {
 					logger.Error(err.Error())
+					return
 				}
 			}()
 		}
@@ -604,20 +606,20 @@ func Run(c *Config) {
 		}
 	*/
 
-	//first transaction
-	if c.RunMaster == true {
-		//log.Printf("BLOCK SEQ= %d \n", d.Visor.Visor.Blockchain.Head().Seq())
-		go func() {
-			for d.Visor.HeadBkSeq() < 1 {
-				time.Sleep(5 * time.Second)
-				tx := InitTransaction()
-				_, err := d.Visor.InjectTxn(tx)
-				if err != nil {
-					logger.Error("%s\n", err)
-				}
-			}
-		}()
-	}
+	// first transaction
+	//	if c.RunMaster == true {
+	//		//log.Printf("BLOCK SEQ= %d \n", d.Visor.Visor.Blockchain.Head().Seq())
+	//		go func() {
+	//			for d.Visor.HeadBkSeq() < 1 {
+	//				time.Sleep(5 * time.Second)
+	//				tx := InitTransaction()
+	//				_, err := d.Visor.InjectTxn(tx)
+	//				if err != nil {
+	//					logger.Error("%s\n", err)
+	//				}
+	//			}
+	//		}()
+	//	}
 
 	select {
 	case <-quit:
