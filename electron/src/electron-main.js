@@ -70,7 +70,7 @@ function startSkycoin() {
     '-gui-dir=' + path.dirname(exe),
     '-color-log=false', // must be disabled or web interface detection
     '-logtofile=true',
-    '-download-peerlist=true'
+    // '-download-peerlist=true'
     // will break
     // broken (automatically generated certs do not work):
     // '-web-interface-https=true',
@@ -131,7 +131,7 @@ function createWindow(url) {
 
   // Create the browser window.
   win = new BrowserWindow({
-    width: 980,
+    width: 1200,
     height: 900,
     title: 'Mzcoin',
     nodeIntegration: false,

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime/debug"
 	"runtime/pprof"
+	"sync"
 	"syscall"
 	"time"
 
@@ -24,11 +26,17 @@ import (
 	"github.com/skycoin/skycoin/src/util/cert"
 	"github.com/skycoin/skycoin/src/util/file"
 	"github.com/skycoin/skycoin/src/util/logging"
-	"github.com/skycoin/skycoin/src/wallet"
+	"github.com/skycoin/skycoin/src/visor"
 )
 
 var (
-	Version    = "0.0.0"
+	// Version node version which will be set when build wallet by LDFLAGS
+	Version = "0.21.1"
+	// Commit id
+	Commit = ""
+
+	help = false
+
 	logger     = logging.MustGetLogger("main")
 	logFormat  = "[mzcoin.%{module}:%{level}] %{message}"
 	logModules = []string{
@@ -36,7 +44,7 @@ var (
 		"daemon",
 		"coin",
 		"gui",
-		"util",
+		"file",
 		"visor",
 		"wallet",
 		"gnet",
@@ -44,18 +52,21 @@ var (
 		"webrpc",
 	}
 
-	//clear these after loading [????]
+	// GenesisSignatureStr hex string of genesis signature
 	GenesisSignatureStr = "ab58cd355f2e5b8c18ecfedba67d9410385c27588f0dc25f6cf18cc4fa7164456673e9d471e041fc25a74c70b33263654632a5ec058f532eb821f403976379ac01"
-	GenesisAddressStr   = "ppu2zgS1H2aheeMNgVpUXjHeJJ7Uov3i4W"
+	// GenesisAddressStr genesis address string
+	GenesisAddressStr = "ppu2zgS1H2aheeMNgVpUXjHeJJ7Uov3i4W"
+	// BlockchainPubkeyStr pubic key string
 	BlockchainPubkeyStr = "02e2016590cf0036a47482773316ec1d521425fcd214cd02adca556751fafb291e"
+	// BlockchainSeckeyStr empty private key string
 	BlockchainSeckeyStr = ""
 
-	GenesisTimestamp  uint64 = 0
+	// GenesisTimestamp genesis block create unix time
+	GenesisTimestamp uint64 = 0
+	// GenesisCoinVolume represents the coin capacity
 	GenesisCoinVolume uint64 = 300e12
 
-	//use port 6001
-	// DefaultServers = []string{
-	// 	"40.74.80.119:6001",
+	// DefaultConnections the default trust node addresses
 	DefaultConnections = []string{
 		"121.41.103.148:7000",
 		"120.77.69.188:7000",
@@ -64,9 +75,14 @@ var (
 
 // Command line interface arguments
 
+// Config records the node's configuration
 type Config struct {
 	// Disable peer exchange
 	DisablePEX bool
+	// Download peer list
+	DownloadPeerList bool
+	// Download the peers list from this URL
+	PeerListURL string
 	// Don't make any outgoing connections
 	DisableOutgoingConnections bool
 	// Don't allowing incoming connections
@@ -80,10 +96,12 @@ type Config struct {
 	Address string
 	//gnet uses this for TCP incoming and outgoing
 	Port int
-	//max connections to maintain
-	MaxConnections int
+	//max outgoing connections to maintain
+	MaxOutgoingConnections int
 	// How often to make outgoing connections
 	OutgoingConnectionsRate time.Duration
+	// PeerlistSize represents the maximum number of peers that the pex would maintain
+	PeerlistSize int
 	// Wallet Address Version
 	//AddressVersion string
 	// Remote web interface
@@ -109,9 +127,12 @@ type Config struct {
 	// GUI directory contains assets for the html gui
 	GUIDirectory string
 
+	// Logging
 	ColorLog bool
 	// This is the value registered with flag, it is converted to LogLevel after parsing
 	LogLevel string
+	// Disable "Reply to ping", "Received pong" log messages
+	DisablePingPong bool
 
 	// Wallets
 	// Defaults to ${DataDirectory}/wallets/
@@ -142,17 +163,21 @@ type Config struct {
 	Arbitrating  bool
 	RPCThreadNum uint // rpc number
 	Logtofile    bool
+	Logtogui     bool
+	LogBuffSize  int
 }
 
 func (c *Config) register() {
+	flag.BoolVar(&help, "help", false, "Show help")
 	flag.BoolVar(&c.DisablePEX, "disable-pex", c.DisablePEX,
 		"disable PEX peer discovery")
+	flag.BoolVar(&c.DownloadPeerList, "download-peerlist", c.DownloadPeerList, "download a peers.txt from -peerlist-url")
+	flag.StringVar(&c.PeerListURL, "peerlist-url", c.PeerListURL, "with -download-peerlist=true, download a peers.txt file from this url")
 	flag.BoolVar(&c.DisableOutgoingConnections, "disable-outgoing",
 		c.DisableOutgoingConnections, "Don't make outgoing connections")
 	flag.BoolVar(&c.DisableIncomingConnections, "disable-incoming",
 		c.DisableIncomingConnections, "Don't make incoming connections")
-	flag.BoolVar(&c.DisableNetworking, "disable-networking",
-		c.DisableNetworking, "Disable all network activity")
+	flag.BoolVar(&c.DisableNetworking, "disable-networking", c.DisableNetworking, "Disable all network activity")
 	flag.StringVar(&c.Address, "address", c.Address,
 		"IP Address to run application on. Leave empty to default to a public interface")
 	flag.IntVar(&c.Port, "port", c.Port, "Port to run application on")
@@ -177,6 +202,7 @@ func (c *Config) register() {
 		"port to serve rpc interface on")
 	flag.StringVar(&c.RPCInterfaceAddr, "rpc-interface-addr", c.RPCInterfaceAddr,
 		"addr to serve rpc interface on")
+	flag.UintVar(&c.RPCThreadNum, "rpc-thread-num", 5, "rpc thread number")
 
 	flag.BoolVar(&c.LaunchBrowser, "launch-browser", c.LaunchBrowser,
 		"launch system default webbrowser at client startup")
@@ -196,6 +222,8 @@ func (c *Config) register() {
 		"Choices are: debug, info, notice, warning, error, critical")
 	flag.BoolVar(&c.ColorLog, "color-log", c.ColorLog,
 		"Add terminal colors to log output")
+	flag.BoolVar(&c.DisablePingPong, "no-ping-log", false,
+		`disable "reply to ping" and "received pong" log messages`)
 	flag.BoolVar(&c.Logtofile, "logtofile", false, "log to file")
 	flag.StringVar(&c.GUIDirectory, "gui-dir", c.GUIDirectory,
 		"static content directory for the html gui")
@@ -217,20 +245,21 @@ func (c *Config) register() {
 		"genesis block timestamp")
 
 	flag.StringVar(&c.WalletDirectory, "wallet-dir", c.WalletDirectory,
-		"location of the wallet files. Defaults to ~/.mzcoin/wallet/")
-
+		"location of the wallet files. Defaults to ~/.mzcoin/wallets/")
+	flag.IntVar(&c.MaxOutgoingConnections, "max-outgoing-connections", 16, "The maximum outgoing connections allowed")
+	flag.IntVar(&c.PeerlistSize, "peerlist-size", 65535, "The peer list size")
 	flag.DurationVar(&c.OutgoingConnectionsRate, "connection-rate",
 		c.OutgoingConnectionsRate, "How often to make an outgoing connection")
 	flag.BoolVar(&c.LocalhostOnly, "localhost-only", c.LocalhostOnly,
 		"Run on localhost and only connect to localhost peers")
 	flag.BoolVar(&c.Arbitrating, "arbitrating", c.Arbitrating, "Run node in arbitrating mode")
-	//flag.StringVar(&c.AddressVersion, "address-version", c.AddressVersion,
-	//	"Wallet address version. Options are 'test' and 'main'")
+	flag.BoolVar(&c.Logtogui, "logtogui", true, "log to gui")
+	flag.IntVar(&c.LogBuffSize, "logbufsize", c.LogBuffSize, "Log size saved in memeory for gui show")
 }
 
-var devConfig Config = Config{
+var devConfig = Config{
 	// Disable peer exchange
-	DisablePEX: true,
+	DisablePEX: false,
 	// Don't make any outgoing connections
 	DisableOutgoingConnections: false,
 	// Don't allowing incoming connections
@@ -244,10 +273,13 @@ var devConfig Config = Config{
 	Address: "",
 	//gnet uses this for TCP incoming and outgoing
 	Port: 7000,
-
-	MaxConnections: 16,
+	// MaxOutgoingConnections is the maximum outgoing connections allowed.
+	MaxOutgoingConnections: 16,
+	DownloadPeerList:       false,
+	PeerListURL:            "",
 	// How often to make outgoing connections, in seconds
 	OutgoingConnectionsRate: time.Second * 5,
+	PeerlistSize:            65535,
 	// Wallet Address Version
 	//AddressVersion: "test",
 	// Remote web interface
@@ -265,12 +297,13 @@ var devConfig Config = Config{
 	RPCThreadNum:     5,
 
 	LaunchBrowser: true,
-	// Data directory holds app data -- defaults to ~/.skycoin
+	// Data directory holds app data -- defaults to ~/.mzcoin
 	DataDirectory: ".mzcoin",
 	// Web GUI static resources
 	GUIDirectory: "./src/gui/static/",
-	ColorLog:     true,
-	LogLevel:     "DEBUG",
+	// Logging
+	ColorLog: true,
+	LogLevel: "DEBUG",
 
 	// Wallets
 	WalletDirectory: "",
@@ -294,12 +327,18 @@ var devConfig Config = Config{
 	HTTPProf: false,
 	// Will force it to connect to this ip:port, instead of waiting for it
 	// to show up as a peer
-	ConnectTo: "",
+	ConnectTo:   "",
+	LogBuffSize: 8388608, //1024*1024*8
 }
 
+// Parse prepare the config
 func (c *Config) Parse() {
 	c.register()
 	flag.Parse()
+	if help {
+		flag.Usage()
+		os.Exit(0)
+	}
 	c.postProcess()
 }
 
@@ -337,7 +376,7 @@ func (c *Config) postProcess() {
 	}
 
 	if c.WalletDirectory == "" {
-		c.WalletDirectory = filepath.Join(c.DataDirectory, "wallets/")
+		c.WalletDirectory = filepath.Join(c.DataDirectory, "wallets")
 	}
 
 	if c.DBPath == "" {
@@ -390,7 +429,7 @@ func catchDebug() {
 }
 
 // init logging settings
-func initLogging(dataDir string, level string, color, logtofile bool) (func(), error) {
+func initLogging(dataDir string, level string, color, logtofile, logtogui bool, logbuf *bytes.Buffer) (func(), error) {
 	logCfg := logging.DevLogConfig(logModules)
 	logCfg.Format = logFormat
 	logCfg.Colors = color
@@ -414,7 +453,16 @@ func initLogging(dataDir string, level string, color, logtofile bool) (func(), e
 			return nil, err
 		}
 
-		logCfg.Output = io.MultiWriter(os.Stdout, fd)
+		if logtogui {
+			logCfg.Output = io.MultiWriter(os.Stdout, fd, logbuf)
+		} else {
+			logCfg.Output = io.MultiWriter(os.Stdout, fd)
+		}
+
+	} else {
+		if logtogui {
+			logCfg.Output = io.MultiWriter(os.Stdout, logbuf)
+		}
 	}
 
 	logCfg.InitLogger()
@@ -445,20 +493,21 @@ func initProfiling(httpProf, profileCPU bool, profileCPUFile string) {
 
 func configureDaemon(c *Config) daemon.Config {
 	//cipher.SetAddressVersion(c.AddressVersion)
-
 	dc := daemon.NewConfig()
-	dc.Peers.DataDirectory = c.DataDirectory
-	dc.Peers.Disabled = c.DisablePEX
+	dc.Pex.DataDirectory = c.DataDirectory
+	dc.Pex.Disabled = c.DisablePEX
+	dc.Pex.Max = c.PeerlistSize
+	dc.Pex.DownloadPeerList = c.DownloadPeerList
+	dc.Pex.PeerListURL = c.PeerListURL
 	dc.Daemon.DisableOutgoingConnections = c.DisableOutgoingConnections
 	dc.Daemon.DisableIncomingConnections = c.DisableIncomingConnections
 	dc.Daemon.DisableNetworking = c.DisableNetworking
 	dc.Daemon.Port = c.Port
 	dc.Daemon.Address = c.Address
 	dc.Daemon.LocalhostOnly = c.LocalhostOnly
-	dc.Daemon.OutgoingMax = c.MaxConnections
+	dc.Daemon.OutgoingMax = c.MaxOutgoingConnections
 	dc.Daemon.DataDirectory = c.DataDirectory
-
-	daemon.DefaultConnections = DefaultConnections
+	dc.Daemon.LogPings = !c.DisablePingPong
 
 	if c.OutgoingConnectionsRate == 0 {
 		c.OutgoingConnectionsRate = time.Millisecond
@@ -476,7 +525,11 @@ func configureDaemon(c *Config) daemon.Config {
 	dc.Visor.Config.GenesisCoinVolume = GenesisCoinVolume
 	dc.Visor.Config.DBPath = c.DBPath
 	dc.Visor.Config.Arbitrating = c.Arbitrating
-
+	dc.Visor.Config.WalletDirectory = c.WalletDirectory
+	dc.Visor.Config.BuildInfo = visor.BuildInfo{
+		Version: Version,
+		Commit:  Commit,
+	}
 	return dc
 }
 
@@ -506,49 +559,89 @@ func Run(c *Config) {
 
 	initProfiling(c.HTTPProf, c.ProfileCPU, c.ProfileCPUFile)
 
-	closelog, err := initLogging(c.DataDirectory, c.LogLevel, c.ColorLog, c.Logtofile)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	var wg sync.WaitGroup
 
 	// If the user Ctrl-C's, shutdown properly
 	quit := make(chan struct{})
 
-	go catchInterrupt(quit)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		catchInterrupt(quit)
+	}()
+
 	// Watch for SIGUSR1
-	go catchDebug()
+	wg.Add(1)
+	func() {
+		defer wg.Done()
+		go catchDebug()
+	}()
 
-	gui.InitWalletRPC(c.WalletDirectory, wallet.OptCoin("mzc"))
-
+	// creates blockchain instance
 	dconf := configureDaemon(c)
-	d, err := daemon.NewDaemon(dconf)
+
+	db, err := visor.OpenDB(dconf.Visor.Config.DBPath)
+	if err != nil {
+		logger.Error("Database failed to open: %v. Is another mzcoin instance running?", err)
+		return
+	}
+
+	d, err := daemon.NewDaemon(dconf, db, DefaultConnections)
 	if err != nil {
 		logger.Error("%v", err)
 		return
 	}
 
+	closelog, err := initLogging(c.DataDirectory, c.LogLevel, c.ColorLog, c.Logtofile, c.Logtogui, &d.LogBuff)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if c.Logtogui {
+		go func(buf *bytes.Buffer, quit chan struct{}) {
+			for {
+				select {
+				case <-quit:
+					logger.Info("Logbuff service closed normally")
+					return
+				case <-time.After(1 * time.Second): //insure logbuff size not exceed required size, like lru
+					for buf.Len() > c.LogBuffSize {
+						_, err := buf.ReadString(byte('\n')) //discard one line
+						if err != nil {
+							continue
+						}
+					}
+				}
+			}
+		}(&d.LogBuff, quit)
+	}
+
 	errC := make(chan error, 1)
 
+	wg.Add(1)
 	go func() {
-		errC <- d.Run()
+		defer wg.Done()
+		d.Run()
 	}()
 
 	var rpc *webrpc.WebRPC
 	// start the webrpc
 	if c.RPCInterface {
-		rpc, err = webrpc.New(
-			fmt.Sprintf("%v:%v", c.RPCInterfaceAddr, c.RPCInterfacePort),
-			webrpc.ChanBuffSize(1000),
-			webrpc.ThreadNum(c.RPCThreadNum),
-			webrpc.Gateway(d.Gateway))
+		rpcAddr := fmt.Sprintf("%v:%v", c.RPCInterfaceAddr, c.RPCInterfacePort)
+		rpc, err = webrpc.New(rpcAddr, d.Gateway)
 		if err != nil {
 			logger.Error("%v", err)
 			return
 		}
+		rpc.ChanBuffSize = 1000
+		rpc.WorkerNum = c.RPCThreadNum
 
+		wg.Add(1)
 		go func() {
-			errC <- rpc.Run()
+			defer wg.Done()
+			if err := rpc.Run(); err != nil {
+				errC <- err
+			}
 		}()
 	}
 
@@ -564,7 +657,7 @@ func Run(c *Config) {
 		var err error
 		if c.WebInterfaceHTTPS {
 			// Verify cert/key parameters, and if neither exist, create them
-			errs := cert.CreateCertIfNotExists(host, c.WebInterfaceCert, c.WebInterfaceKey, "Mzcoind")
+			errs := cert.CreateCertIfNotExists(host, c.WebInterfaceCert, c.WebInterfaceKey, "Kittycashd")
 			if len(errs) != 0 {
 				for _, err := range errs {
 					logger.Error(err.Error())
@@ -585,7 +678,10 @@ func Run(c *Config) {
 		}
 
 		if c.LaunchBrowser {
+			wg.Add(1)
 			go func() {
+				defer wg.Done()
+
 				// Wait a moment just to make sure the http interface is up
 				time.Sleep(time.Millisecond * 100)
 
@@ -597,6 +693,7 @@ func Run(c *Config) {
 			}()
 		}
 	}
+
 	/*
 		time.Sleep(5)
 		tx := InitTransaction()
@@ -607,20 +704,19 @@ func Run(c *Config) {
 		}
 	*/
 
-	// first transaction
-	//	if c.RunMaster == true {
-	//		//log.Printf("BLOCK SEQ= %d \n", d.Visor.Visor.Blockchain.Head().Seq())
-	//		go func() {
-	//			for d.Visor.HeadBkSeq() < 1 {
-	//				time.Sleep(5 * time.Second)
-	//				tx := InitTransaction()
-	//				_, err := d.Visor.InjectTxn(tx)
-	//				if err != nil {
-	//					logger.Error("%s\n", err)
-	//				}
-	//			}
-	//		}()
-	//	}
+	//first transaction
+	// if c.RunMaster == true {
+	// 	go func() {
+	// 		for d.Visor.HeadBkSeq() < 2 {
+	// 			tx := InitTransaction()
+	// 			_, err := d.Visor.InjectTxn(tx)
+	// 			if err != nil {
+	// 				log.Panic(err)
+	// 			}
+	// 			time.Sleep(time.Minute)
+	// 		}
+	// 	}()
+	// }
 
 	select {
 	case <-quit:
@@ -629,155 +725,50 @@ func Run(c *Config) {
 	}
 
 	logger.Info("Shutting down...")
-
 	if rpc != nil {
 		rpc.Shutdown()
 	}
-
 	gui.Shutdown()
 	d.Shutdown()
 	closelog()
+	wg.Wait()
 	logger.Info("Goodbye")
 }
 
 func main() {
-
-	/*
-		mzcoin.Run(&cli.DaemonArgs)
-	*/
-
-	/*
-	   mzcoin.Run(&cli.ClientArgs)
-	   stop := make(chan int)
-	   <-stop
-	*/
-
-	//mzcoin.Run(&cli.DevArgs)
 	devConfig.Parse()
 	Run(&devConfig)
 }
 
-//addresses for storage of coins
-var AddrList []string = []string{
-	"bhfN2SXFoJdgfd6k2MXbNQXZix3pQTEfJb",
-	"xa4F9twZsHjyBMvrDuQtimh34Wn4xAWRb5",
-	"2LkUBbUf2LvCnsPjitSn3PSiP3vSep2L6Pd",
-	"2W5Wb6nEe9KByv486xujBK3uQKYbpssYby1",
-	"wwszxeD6hWNveQLvqYmrz6CcQYr7H9Z5W2",
-	"2PYexNtTQEk1V8gjwAqRunxwQUgdxygWE4p",
-	"2k6UHuzFSLZgaz9XPxPV8rCrLJRtJ67oQBe",
-	"2fymCfVQLaU1EUaNm5fyzuLHPAhYYbBFhjM",
-	"RBrHhZt2WoJEN8Tg9WkxaaRyjkV476Efvj",
-	"2ay6NmBcSTAMscm8cuXTvu258KNS352kteq",
-	"WeiHBmqS4ob2xuAU15sVpQwrspxKFzUuLR",
-	"2irzCEdSikB4U161xwvhhSD4HYdKybWfGYw",
-	"23PApg2FomMbZ4pS2DjyWL6PPrM7219Tun8",
-	"2Rk8BMLwreSHTNBXXLPXJZVfupxEwUyaLtT",
-	"wf76eyZvVybrAqCwV1A4BwvYWNPFktieTy",
-	"873xgFM5UpzQnnTdM2REtKHYi2FM1Zt2R2",
-	"27rYHhBSfzVSCjnT3bRn2xLXuM9x53UBYEZ",
-	"2DWHBRuJZTG9BBnjsDNArJJ7XDnDvye7PMF",
-	"QrTVJgz8knNyMHWaaHEfU1sWA3TjzGxNGA",
-	"GYcigvRmUcNi4q2yqYjbcKHc5WVVNUddQF",
-	"yicKja6yRyRwPS9Hugjg7nztAKXtJwh8xm",
-	"2XmZsewt88nxnRJPTWufknBrsChD6jzS343",
-	"NBBnK5fLDLMvAX6VFtt4qwnbHeGkpqDxoC",
-	"iAVptbD8Np9E1tX4vc14oNRTa5LCRfaibv",
-	"7SjN9L6rUs8mPeh51gXAfHofY3D3kpssMy",
-	"2g39jwf8h2Q9NXjjtJnZfqpafKZNKs3QaY",
-	"21hEAszZL1VkLQaxCDGLQ3FqaaqDNjgHrK1",
-	"WJ29xWNNFsVzhsB8cqh1ekDg9s7wHPLLZX",
-	"2DbYEiUm7EpHdjVfd7g2coWAjB8WyXPpHWk",
-	"hLeQurePKTvGTsaVxsp5wWbLbqnzLzqsDQ",
-	"2CWoQDwm6YNKDcDrXZg1FSFCXFPnhDWcrot",
-	"7t2dsWpxpqVtww7q7YNxCrschWSJYdJnpZ",
-	"2c8csipycrUFkFFh3i6Rzkf2QvYhVUru5Rq",
-	"ENt1iuQs2prq9cDevvc7xAGV9kMHsXirGV",
-	"K2EQAZMm7rjzXnBhb1CvpbidZron2YPcss",
-	"2eH1DQxS83RB7rgGbx5JUNMhVZTLdiPSyuH",
-	"wFgv2JLrTYhkzExAfGcvgb8CZhKhQbz7TY",
-	"PHCDfMBjd4uWfQ6EqVKPU571kHnrrE55N8",
-	"CSULm5QWcx3E7Qgyi7doiVLg2JkJmBx5HH",
-	"2drH12moEXeR4Uj3jBpFSiXXg53mmHpop3U",
-	"DWycLBPX88qythtZFUjAUe9nW1rTL2137M",
-	"5nVPC9kAWcyyCA27RxT9SvS4QDqefERovY",
-	"2StQ2tFaLgS6Zv6ZKh9vKqRUTEag3v53gAX",
-	"2LfvLvg9MRcFZ1J3KSQZSfU66gnBKYPoMvC",
-	"pggCTaNQ2YGtLHMd2K8bzKGomwd4JZzwHZ",
-	"2d1JMT7s5B3rEPSBXAnh7JXGomgbWJ9xsf9",
-	"2mCSXePhCPrCJyok6kmCAiMmcfd2WACurDK",
-	"4s15J311npW9gE35WvzPcdntPv3sp83DUw",
-	"2eVtPJbKkDJkcNnEV3YKnwv2MtaTvLUbc3t",
-	"3WgJz3K8HYxsQr7qBM7CT9k7SSw5h8NFHH",
-	"gLw7TQHJ69zk8vWiViW8n3VumaCFgcZZsC",
-	"rfqBRPWmFudi1PEKZToA8hX82a392uLn2q",
-	"24gFre2Wyt5E2L45qW8jULq38MFxtJ8d41R",
-	"2Z1V2UpEWpBbMuUbbGGs2h9Lnt7dL1pVdow",
-	"2dcrSobzPtpjf4U36Btf1CESEjnSATZpkre",
-	"bH4jqy8qsWxfKV21Zc76qGACFioGVrNPMN",
-	"FapGCWGob6zxiayKJsHX1WTmRUKStu8gAG",
-	"UF3Zs4YrEZ1qW8TXZqmeniLbB91UDtsZCs",
-	"2EGnRrze66vzBosPLz7yzMSZ7L6rCgNgAyS",
-	"LxT1Qy4GhxyeuU6o5AXhNyUyVmxhDxrWBa",
-	"2etQcyH8Ex9wyDHQ15KXPZkn9jEQS1VdDQJ",
-	"PY9XsZxAnygh2wPzuPcEh3qPyBWTvHfGVB",
-	"JHLXWvVaJrwQkQXmU4pMBXbkp53BEUDBEJ",
-	"FUyrJL2nGW1L5Exbv7B2MzxRPcrcji8TRp",
-	"2P3E1jhgFoZgtC2YZnJTjFXZNqvYL3N7ue5",
-	"2771xbXanzeydayszcEzPyYF7HD72h4BggQ",
-	"MaSGs1B4sGivEYKcPh4LfWRz3fVjbvVMmh",
-	"ruDmeGYSW62gB9rQj4Yy974HLwbMtgog1j",
-	"2c7PNBwwTYP9newxcxdwqGRnSXBS2ZDD31X",
-	"2GKZnD2vfWR5X7ZUSsafL27xSme8LmJ9yH6",
-	"2ZEXuo6n68XetWZqmgaPaFEPmyVatwVvuDz",
-	"2GFdxbv3C7gnFoJ4UBWqyai1LDtroappku",
-	"BDLgoo4jb8gMsHexTNzzAwmc1FEoWVUrAC",
-	"nCeqRZZa6r2e52yo5rC5zTvLWFoxUGCV69",
-	"2NzHpU4ogdH9F91YaZ2RkGAs3tCK29Fm6V9",
-	"qgnm7MhxME5oAj5AXpfzse9sREQ6qshf2u",
-	"2G1X2Atfyc3AQNyp3UszU6uHNLs2uSTL8XF",
-	"kdgzfJAP5A7A77R8m4QEpi2gNjSQzRxZZP",
-	"2NhZJaCErM4mqUtpcu9aDcUgyVA6EzCM9pm",
-	"EEhqTbQP8fpPBZij5WdBRhzRZBzWnhCQsZ",
-	"W6UhJheYvExzwYNFeyRT6Sm2fsZxfNSCFF",
-	"SDhfRZ8twZ4Ybtctuaf3Qr9yE5A49a1zJp",
-	"NTTCre1H4SznbfKUsuvEtEctoqcsxdzjuJ",
-	"E5P4iMWjvEUNQn9uYinzp3fFDJHtC7kPLq",
-	"rDV5K5q8j9VEW4JRu34c5erT2PMEFtwTH9",
-	"8qGtRTpYQbAzfJc4FcaWbuwaku1LnkPPbD",
-	"NcKq9ipiePzgZBKbaXvRmbc9cJEvKhVqb5",
-	"ucWmmA91iaevnd3WkHgFExm9qzTV4mtLpg",
-	"2BuEM1ruAFp3nYVcwviT5NDvY8UdHUgZhWG",
-	"2kk8BAJtTTU6aNvT1Lw31rmbCbMU3Xnmp4h",
-	"puY8tYhFtU8yJU9yJ7s8cJDpzhKgfoN2mg",
-	"R43teMKjkYmc433SYeo1btLmwt7DZ4H8Hi",
-	"2H9tdF3uF1mAbRREvVHjjZSN1v2hN54t384",
-	"2Z6Ty4GfgQviuzrJMmNZu3nb2TVDMRKsXgb",
-	"sneUfLKiWZQReydqbYp4EFTxggCbQZk9gi",
-	"zGh2xdLfEKLxPYkRdSoQckJZjkNGxMPL39",
-	"HZXxJyc4iR1UV22Tm4JLBRfS5gFexzMJfD",
-	"2U2o4ncEgyBw321gGL7aeExQ9vmVNdPanPL",
-	"2CjUzn3qb89Z14VWwH7GqstWJ9bW7GfLm1v",
-	"2fU9fYdTidLDzK8brNT3tKxKmMEpcXsyY6v",
-}
-
+// InitTransaction creates the initialize transaction
 func InitTransaction() coin.Transaction {
-
-	genesis_output := "33dc904e0e697509b216d13cafbae49cc4b3da7073bab19e85a6d428645f429e"
-	genesis_sig := "9244e5a6bb7db77a796951324110439d04f1770a28ae22c92f22c9fb23c522fb0498a384e907524764fa7670981588e5994edf810d6db8feda487ff30183cad401" //sig for spending genesis output
-
 	var tx coin.Transaction
 
-	output := cipher.MustSHA256FromHex(genesis_output)
+	output := cipher.MustSHA256FromHex("33dc904e0e697509b216d13cafbae49cc4b3da7073bab19e85a6d428645f429e")
 	tx.PushInput(output)
 
-	for i := 0; i < 100; i++ {
-		addr := cipher.MustDecodeBase58Address(AddrList[i])
-		tx.PushOutput(addr, 3e12, 1) // 10e6*10e6
+	addrs := visor.GetDistributionAddresses()
+
+	if len(addrs) != int(visor.DistributionAddressesTotal) {
+		log.Panic("Should have 100 distribution addresses")
 	}
 
+	// 1 million per address, measured in droplets
+	if visor.DistributionAddressInitialBalance != 1e6 {
+		log.Panic("visor.DistributionAddressInitialBalance expected to be 1e6*1e6")
+	}
+
+	for i := range addrs {
+		addr := cipher.MustDecodeBase58Address(addrs[i])
+		tx.PushOutput(addr, visor.DistributionAddressInitialBalance*1e6, 1)
+	}
+	// seckeys := make([]cipher.SecKey, 1)
+	// seckey := ""
+	// seckeys[0] = cipher.MustSecKeyFromHex(seckey)
+	// tx.SignInputs(seckeys)
+
 	txs := make([]cipher.Sig, 1)
-	sig := genesis_sig
+	sig := "9244e5a6bb7db77a796951324110439d04f1770a28ae22c92f22c9fb23c522fb0498a384e907524764fa7670981588e5994edf810d6db8feda487ff30183cad401"
 	txs[0] = cipher.MustSigFromHex(sig)
 	tx.Sigs = txs
 
@@ -789,7 +780,7 @@ func InitTransaction() coin.Transaction {
 		log.Panic(err)
 	}
 
-	//log.Printf("signature= %s", tx.Sigs[0].Hex())
+	log.Printf("signature= %s", tx.Sigs[0].Hex())
 	return tx
 }
 

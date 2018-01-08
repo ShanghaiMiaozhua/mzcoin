@@ -32,16 +32,16 @@
   version = "v1.0.0"
 
 [[projects]]
-  name = "github.com/skycoin/skycoin"
-  packages = ["src/api/cli","src/api/webrpc","src/cipher","src/cipher/base58","src/cipher/chacha20","src/cipher/encoder","src/cipher/go-bip39","src/cipher/ripemd160","src/cipher/secp256k1-go","src/cipher/secp256k1-go/secp256k1-go2","src/coin","src/consensus","src/daemon","src/daemon/gnet","src/daemon/pex","src/gui","src/util/browser","src/util/cert","src/util/file","src/util/http","src/util/logging","src/util/utc","src/visor","src/visor/blockdb","src/visor/bucket","src/visor/historydb","src/wallet"]
-  revision = "dd924e1f2de8fab945e05b3245dbeabf267f2910"
-  version = "v0.19.0"
-
-[[projects]]
   branch = "master"
   name = "github.com/shopspring/decimal"
   packages = ["."]
   revision = "aed1bfe463fa3c9cc268d60dcc1491db613bff7e"
+
+[[projects]]
+  name = "github.com/skycoin/skycoin"
+  packages = ["src/api/cli","src/api/webrpc","src/cipher","src/cipher/base58","src/cipher/chacha20","src/cipher/encoder","src/cipher/go-bip39","src/cipher/ripemd160","src/cipher/secp256k1-go","src/cipher/secp256k1-go/secp256k1-go2","src/coin","src/consensus","src/daemon","src/daemon/gnet","src/daemon/pex","src/daemon/strand","src/gui","src/testutil","src/util/browser","src/util/cert","src/util/droplet","src/util/elapse","src/util/fee","src/util/file","src/util/http","src/util/logging","src/util/utc","src/visor","src/visor/blockdb","src/visor/bucket","src/visor/historydb","src/wallet"]
+  revision = "4a11cd3a2841bbb555734c6889838fefabfa1b41"
+  version = "v0.21.1"
 
 [[projects]]
   branch = "master"
@@ -75,7 +75,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["pbkdf2","ripemd160"]
+  packages = ["pbkdf2"]
   revision = "08a7dbd3d99261d9ae86ef1b3b8bdb0382fb82cd"
 
 [[projects]]
@@ -93,6 +93,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b78bd9e0520703e38721cc121f7d39245fcc8a2bd75e24803c13ad81b626acb0"
+  inputs-digest = "caaaf04db6ec29fa134f45f8cbd4b886aae03ea0816b0d1b8a0671fda39a5e08"
   solver-name = "gps-cdcl"
   solver-version = 1
