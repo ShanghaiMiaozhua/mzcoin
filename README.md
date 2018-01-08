@@ -1,109 +1,135 @@
-Mzcoin [![GoDoc](https://godoc.org/github.com/ShanghaiKuaibei/mzcoin?status.svg)](https://godoc.org/github.com/ShanghaiKuaibei/mzcoin) [![Go Report Card](https://goreportcard.com/badge/github.com/ShanghaiKuaibei/mzcoin)](https://goreportcard.com/report/github.com/ShanghaiKuaibei/mzcoin) 
+# Mzcoin
 
-Mzcoin is children's education coin created by mzworld.
+[![GoDoc](https://godoc.org/github.com/ShanghaiKuaibei/mzcoin?status.svg)](https://godoc.org/github.com/ShanghaiKuaibei/mzcoin)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ShanghaiKuaibei/mzcoin)](https://goreportcard.com/report/github.com/ShanghaiKuaibei/mzcoin)
+
+Mzcoin is a next-generation cryptocurrency.
+
+Mzcoin improves on Bitcoin in too many ways to be addressed here.
+
+Mzcoin is a small part of OP Redecentralize and OP Darknet Plan.
+
+## Table of Contents
+
+<!-- MarkdownTOC depth="2" autolink="true" bracket="round" -->
+
+- [Installation](#installation)
+    - [Go 1.9+ Installation and Setup](#go-19-installation-and-setup)
+    - [Go get mzcoin](#go-get-mzcoin)
+    - [Run Mzcoin from the command line](#run-mzcoin-from-the-command-line)
+    - [Show Mzcoin node options](#show-mzcoin-node-options)
+    - [Run Mzcoin with options](#run-mzcoin-with-options)
+    - [Docker image](#docker-image)
+- [API Documentation](#api-documentation)
+    - [Wallet REST API](#wallet-rest-api)
+    - [JSON-RPC 2.0 API](#json-rpc-20-api)
+    - [Mzcoin command line interface](#mzcoin-command-line-interface)
+- [Development](#development)
+    - [Modules](#modules)
+    - [Running Tests](#running-tests)
+    - [Formatting](#formatting)
+    - [Code Linting](#code-linting)
+    - [Dependency Management](#dependency-management)
+    - [Wallet GUI Development](#wallet-gui-development)
+
+<!-- /MarkdownTOC -->
 
 ## Installation
 
-For detailed installation instructions, see [Installing mzcoin](../../wiki/Installation)
+### Go 1.9+ Installation and Setup
 
-## For OSX
+[Golang 1.9+ Installation/Setup](./Installation.md)
 
-Install [homebrew](brew.sh), if you don't have it yet.
-
-```sh
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-```
-
-Install the latest version of golang
+### Go get mzcoin
 
 ```sh
-brew install go
+go get github.com/ShanghaiKuaibei/mzcoin/...
 ```
 
-Setup $GOPATH variable, add it to ~/.bash_profile (or bashrc). After editing, open a new tab
-Add to `bashrc` or `bash_profile`
+This will download `github.com/ShanghaiKuaibei/mzcoin` to `$GOPATH/src/github.com/ShanghaiKuaibei/mzcoin`.
 
-```sh
-export GOPATH=/Users/<username>/go
-export PATH=$PATH:$GOPATH/bin
+You can also clone the repo directly with `git clone https://github.com/ShanghaiKuaibei/mzcoin`,
+but it must be cloned to this path: `$GOPATH/src/github.com/ShanghaiKuaibei/mzcoin`.
 
-```
-
-Install Mercurial and Bazaar
-
-```sh
-brew install mercurial bzr
-```
-
-Fetch the latest code of mzcoin from the github repository
-
-```sh
-go get github.com/ShanghaiKuaibei/mzcoin
-```
-
-Change your current directory to $GOPATH/src/github.com/ShanghaiKuaibei/mzcoin
+### Run Mzcoin from the command line
 
 ```sh
 cd $GOPATH/src/github.com/ShanghaiKuaibei/mzcoin
+make run
 ```
 
-Run Wallet
+### Show Mzcoin node options
 
 ```sh
-./run.sh
-
-OR
-go run ./cmd/mzcoin/mzcoin.go
-
-For Options
-go run ./cmd/mzcoin/mzcoin.go --help
+cd $GOPATH/src/github.com/ShanghaiKuaibei/mzcoin
+make run-help
 ```
 
-## For linux
+### Run Mzcoin with options
 
 ```sh
-sudo apt-get install curl git mercurial make binutils gcc bzr bison libgmp3-dev screen -y
+cd $GOPATH/src/github.com/ShanghaiKuaibei/mzcoin
+make ARGS="--launch-browser=false" run
 ```
 
-## Setup Golang
+### Docker image
 
-use gvm or download binary and follow instructions.
+A Dockerfile is available at https://github.com/ShanghaiKuaibei/docker-img
 
-### Golang ENV setup with gvm
+## API Documentation
 
-In China, use `--source=https://github.com/golang/go` to bypass firewall when fetching golang source.
+### Wallet REST API
+
+[Wallet REST API](src/gui/README.md).
+
+### JSON-RPC 2.0 API
+
+[JSON-RPC 2.0 README](src/api/webrpc/README.md).
+
+### Mzcoin command line interface
+
+[CLI command API](cmd/cli/README.md).
+
+### Modules
+
+* `/src/cipher` - cryptography library
+* `/src/coin` - the blockchain
+* `/src/daemon` - networking and wire protocol
+* `/src/visor` - the top level, client
+* `/src/gui` - the web wallet and json client interface
+* `/src/wallet` - the private key storage library
+* `/src/api/webrpc` - JSON-RPC 2.0 API
+* `/src/api/cli` - CLI library
+
+### Running Tests
 
 ```sh
-sudo apt-get install bison curl git mercurial make binutils bison gcc build-essential
-bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
-source $HOME/.gvm/scripts/gvm
-
-gvm install go1.4 --source=https://github.com/golang/go
-gvm use go1.4
-gvm install go1.8
-gvm use go1.8 --default
+make test
 ```
 
-If you open up new terminal and the go command is not found then add this to .bashrc . GVM should add this automatically.
+### Formatting
+
+All `.go` source files should be formatted `goimports`.  You can do this with:
 
 ```sh
-[[ -s "$HOME/.gvm/scripts/gvm" ]] && source "$HOME/.gvm/scripts/gvm"
-gvm use go1.8 >/dev/null
+make format
 ```
 
-The mzcoin repo must be in $GOPATH, under "/src/github.com/ShanghaiKuaibei". Otherwise golang programs cannot import the libraries.
+### Code Linting
 
-Pull mzcoin repo into the gopath, note: puts the mzcoin folder in $GOPATH/src/github.com/ShanghaiKuaibei/mzcoin
+Install prerequisites:
 
 ```sh
-go get -v github.com/ShanghaiKuaibei/mzcoin/...
+make install-linters
+```
 
-# create symlink of the repo
-cd $HOME
-ln -s $GOPATH/src/github.com/ShanghaiKuaibei/mzcoin mzcoin
+Run linters:
 
+```sh
+make lint
+```
 
-## Dependencies
+### Dependency Management
 
 Dependencies are managed with [dep](https://github.com/golang/dep).
 
@@ -153,91 +179,18 @@ dep ensure github.com/foo/bar@tag
 dep prune
 ```
 
-## Run A Mzcoin Node
+### Wallet GUI Development
 
-```sh
-cd mzcoin
-screen
-go run ./cmd/mzcoin/mzcoin.go
-```
+The compiled wallet source should be checked in to the repo, so that others do not need to install node to run the software.
 
-then ctrl+A then D to exit screen
-screen -x to reattach screen
+Instructions for doing this:
 
-### Todo
+[Wallet GUI Development README](src/gui/static/README.md)
 
-Use gvm package set, so repo does not need to be symlinked. Does this have a default option?
+#### Creating release builds
 
-```sh
-gvm pkgset create mzcoin
-gvm pkgset use mzcoin
-git clone https://github.com/ShanghaiKuaibei/mzcoin
-cd mzcoin
-go install
-```
+[Create Release builds](electron/README.md).
 
-### Cross Compilation
+## Changelog
 
-Install Gox:
-
-```sh
-go get github.com/mitchellh/gox
-```
-
-Compile:
-
-```sh
-gox --help
-gox [options] cmd/mzcoin/
-```
-
-Modules
--------
-
-## Modules
-
-* /src/cipher - cryptography library
-* /src/coin - the blockchain
-* /src/daemon - networking and wire protocol
-* /src/visor - the top level, client
-* /src/gui - the web wallet and json client interface
-* /src/wallet - the private key storage library
-
-## Meshnet
-
-```sh
-go run ./cmd/mesh/*.go -config=cmd/mesh/sample/config_a.json
-go run ./cmd/mesh/*.go -config=cmd/mesh/sample/config_b.json
-```
-
-## Meshnet reminders
-
-* one way latency
-* two way latency (append), latency between packet and ack
-* service handler (ability to append services to meshnet)
-* uploading bandwidth, latency measurements over time
-* end-to-end route instrumentation
-
-## Rebuilding Wallet HTML
-
-```sh
-cd src/gui/static
-npm install
-gulp build
-```
-
-## Release Builds
-
-```sh
-cd /src/gui/static
-npm install
-gulp dist
-```
-
-## Skycoin command line interface
-
-See the doc of command line interface [here](cmd/cli/README.md).
-
-## WebRPC
-
-See the doc of webrpc [here](src/api/webrpc/README.md).
+[CHANGELOG.md](CHANGELOG.md)

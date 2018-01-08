@@ -6,9 +6,9 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"golang.org/x/crypto/ripemd160"
-
 	"github.com/stretchr/testify/assert"
+
+	"github.com/skycoin/skycoin/src/cipher/ripemd160"
 )
 
 func TestNewPubKey(t *testing.T) {

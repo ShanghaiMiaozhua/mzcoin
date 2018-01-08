@@ -36,94 +36,91 @@ let win;
 var skycoin = null;
 
 function startSkycoin() {
-	console.log('Starting mzcoin from electron');
+  console.log('Starting mzcoin from electron');
 
-	if (skycoin) {
-		console.log('Mzcoin already running');
-		app.emit('skycoin-ready');
-		return
-	}
+  if (skycoin) {
+    console.log('Mzcoin already running');
+    app.emit('skycoin-ready');
+    return
+  }
 
-	var reset = () => {
-		skycoin = null;
-	}
+  var reset = () => {
+    skycoin = null;
+  }
 
-	// Resolve skycoin binary location
-	var appPath = app.getPath('exe');
-	var exe = (() => {
-		switch (process.platform) {
-			case 'darwin':
-				return path.join(appPath, '../../Resources/app/mzcoin');
-			case 'win32':
-				// Use only the relative path on windows due to short path length
-				// limits
-				return './resources/app/mzcoin.exe';
-			case 'linux':
-				return path.join(path.dirname(appPath), './resources/app/mzcoin');
-			default:
-				return './resources/app/mzcoin';
-		}
-	})()
+  // Resolve skycoin binary location
+  var appPath = app.getPath('exe');
+  var exe = (() => {
+        switch (process.platform) {
+  case 'darwin':
+    return path.join(appPath, '../../Resources/app/mzcoin');
+  case 'win32':
+    // Use only the relative path on windows due to short path length
+    // limits
+    return './resources/app/mzcoin.exe';
+  case 'linux':
+    return path.join(path.dirname(appPath), './resources/app/mzcoin');
+  default:
+    return './resources/app/mzcoin';
+  }
+})()
 
-	var args = [
-		'-launch-browser=false',
-		'-gui-dir=' + path.dirname(exe),
-		'-color-log=false', // must be disabled or web interface detection
-		'-logtofile=true',
-		// will break
-		// broken (automatically generated certs do not work):
-		// '-web-interface-https=true',
-	]
+  var args = [
+    '-launch-browser=false',
+    '-gui-dir=' + path.dirname(exe),
+    '-color-log=false', // must be disabled or web interface detection
+    '-logtofile=true',
+    '-download-peerlist=true'
+    // will break
+    // broken (automatically generated certs do not work):
+    // '-web-interface-https=true',
+  ]
+  skycoin = childProcess.spawn(exe, args);
 
+  skycoin.on('error', (e) => {
+    dialog.showErrorBox('Failed to start mzcoin', e.toString());
+  app.quit();
+});
 
-	skycoin = childProcess.spawn(exe, args);
+  skycoin.stdout.on('data', (data) => {
+    console.log(data.toString());
 
-	skycoin.on('error', (e) => {
-		dialog.showErrorBox('Failed to start skycoin', e.toString());
-		app.quit();
-	});
+  // Scan for the web URL string
+  if (currentURL) {
+    return
+  }
+  const marker = 'Starting web interface on ';
+  var i = data.indexOf(marker);
+  if (i === -1) {
+    return
+  }
+  // var j = data.indexOf('\n', i);
 
-	skycoin.stdout.on('data', (data) => {
-		console.log(data.toString());
+  // // dialog.showErrorBox('index of newline: ', j);
+  // if (j === -1) {
+  //     throw new Error('web interface url log line incomplete');
+  // }
+  // var url = data.slice(i + marker.length, j);
+  // currentURL = url.toString();
+  currentURL = defaultURL;
+  app.emit('skycoin-ready', { url: currentURL });
+});
 
-		// Scan for the web URL string
-		if (currentURL) {
-			return
-		}
-		const marker = 'Starting web interface on ';
-		var i = data.indexOf(marker);
-		if (i === -1) {
-			return
-		}
-		// var j = data.indexOf('\n', i);
+  skycoin.stderr.on('data', (data) => {
+    console.log(data.toString());
+});
 
-		// // dialog.showErrorBox('index of newline: ', j);
-		// if (j === -1) {
-		//     throw new Error('web interface url log line incomplete');
-		// }
-		// var url = data.slice(i + marker.length, j);
-		// currentURL = url.toString();
-		currentURL = defaultURL;
-		app.emit('skycoin-ready', {
-			url: currentURL
-		});
-	});
+  skycoin.on('close', (code) => {
+    // log.info('Skycoin closed');
+    console.log('Skycoin closed');
+  reset();
+});
 
-	skycoin.stderr.on('data', (data) => {
-		console.log(data.toString());
-	});
-
-	skycoin.on('close', (code) => {
-		// log.info('Skycoin closed');
-		console.log('Skycoin closed');
-		reset();
-	});
-
-	skycoin.on('exit', (code) => {
-		// log.info('Skycoin exited');
-		console.log('Skycoin exited');
-		reset();
-	});
+  skycoin.on('exit', (code) => {
+    // log.info('Skycoin exited');
+    console.log('Mzcoin exited');
+  reset();
+});
 }
 
 
